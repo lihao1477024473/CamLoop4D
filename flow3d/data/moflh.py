@@ -68,118 +68,6 @@ def uniform_sample(data, sample_rate):
     sampled_data = [data[int(np.floor(i))] for i in indices]
     return sampled_data
 
-# 张量采样：不能超过指定的点数
-def uniform_sample_points(tensor: torch.Tensor, threshold: int = 50000) -> torch.Tensor:
-    N = tensor.shape[0]
-    device=tensor.device
-    indices = torch.arange(N,device=device)
-    if N <= threshold:
-        return indices
-    else:
-        rate = threshold/N
-        N_target = int(round(N * rate))
-        N_target = max(1, N_target)  # 至少保留 1 个点
-
-        indices = torch.linspace(0, N - 1, N_target, dtype=torch.long, device=tensor.device) # 生成均匀索引（在 GPU 上）
-        indices = torch.unique(indices)  # 防止浮点误差导致重复
-        return indices
-
-# 张量采样：动态高斯不能超过指定的点数;fg + bg
-def uniform_sample_points_v2(tensor: torch.Tensor, threshold_fg: int = 100000,type_point="fg",enable: bool =False) -> torch.Tensor:
-    N = tensor.shape[0]
-    device=tensor.device
-    indices = torch.arange(N,device=device)
-    # 不启用采样
-    if enable == False:
-         return indices
-    
-    # 启用采样
-    # b = type_point == "fg"
-    # print(f"N={N} | threshold_fg={threshold_fg} {b} {type_point}")
-    if type_point == "fg":
-        # print(f"N={N} | threshold_fg={threshold_fg}")
-        if N <= threshold_fg:
-            return indices
-        else:
-            # print("--------")
-            rate = threshold_fg/N
-            N_target = int(round(N * rate))
-            N_target = max(1, N_target)
-            indices = torch.linspace(0, N - 1, N_target, dtype=torch.long, device=tensor.device) # 生成均匀索引（在 GPU 上）
-            indices = torch.unique(indices)
-            return indices
-    else:
-        return indices
-
-# 张量采样：动态高斯不能超过指定的点数;fg + bg
-def random_sample_indices(tensor: torch.Tensor, threshold_fg: int = 100000,type_point="fg",enable: bool =False) -> torch.Tensor:
-    N = tensor.shape[0]
-    device=tensor.device
-    indices = torch.arange(N,device=device)
-    # 不启用采样
-    if enable == False:
-         return indices
-    
-    # 启用采样
-    # b = type_point == "fg"
-    # print(f"N={N} | threshold_fg={threshold_fg} {b} {type_point}")
-    if type_point == "fg":
-        # print(f"N={N} | threshold_fg={threshold_fg}")
-        if N <= threshold_fg:
-            return indices
-        else:
-            # print("--------")
-            rate = threshold_fg/N
-            N_target = int(round(N * rate))
-            N_target = max(1, N_target)
-            # 均匀
-            # indices = torch.linspace(0, N - 1, N_target, dtype=torch.long, device=tensor.device) # 生成均匀索引（在 GPU 上）
-            #随机打乱所有索引，取前 N_target 个
-            indices = torch.randperm(N, device=tensor.device)[:N_target]
-            indices = torch.unique(indices)
-            return indices
-    else:
-        return indices
-
-
-# 张量随机采样：超过指定点按比率随机采样
-def random_sample_points(tensor: torch.Tensor, rate: float, threshold: int = 50000) -> torch.Tensor:
-    """
-    对 [N, F, B] 的 tensor 沿点维度 N 进行随机均匀采样。
-    仅当 N > threshold 时才采样，否则直接返回原张量。
-
-    Args:
-        tensor (torch.Tensor): shape [N, F, B], on CUDA
-        rate (float): 采样率，0 < rate <= 1
-        threshold (int): 触发采样的点数阈值，默认 50000
-
-    Returns:
-        torch.Tensor: shape [N_out, F, B] if N > threshold, else [N, F, B]
-    """
-    assert tensor.dim() == 3, "Input tensor must be of shape [N, F, B]"
-    assert 0 < rate <= 1, "Sampling rate must be in (0, 1]"
-
-    N, F, B = tensor.shape
-
-    # ✅ 判断点数量是否超过阈值
-    if N <= threshold:
-        return tensor  # 不采样，原样返回
-
-    # 开始随机采样
-    N_target = int(round(N * rate))
-    N_target = max(1, N_target)  # 至少保留 1 个点
-
-    if N_target == N:
-        return tensor
-
-    # 在 GPU 上生成随机排列并取前 N_target 个索引
-    indices = torch.randperm(N, device=tensor.device)[:N_target]
-
-    # 可选：保持索引顺序（如原始顺序），便于后续处理
-    indices = indices.sort().values
-
-    return tensor[indices]  # [N_target, F, B]
-
 def init_motion_coefs(N,F,B,alg="randn"):
     # # 250615
     # coefs = torch.randn(N, F, B) # 初始化为标准正态分布 N(0, 1)
@@ -223,10 +111,6 @@ def compute_coef(coef1,base1,base2):
 
     return coef2
 
-
-def check_bases_sizes(rots, transls):
-    # 示例函数，确保 rots 和 transls 尺寸匹配
-    return rots.shape[0] == transls.shape[0]
 
 # 六个基本运动基的 4x4 矩阵表示（在 se(3) 中）
 # 三个平移基
@@ -321,40 +205,6 @@ def get_rots6d_transls3d(num_bases):
     # print(f"transls_3d:\n{transls_3d} {transls_3d.shape}")
     return rots_6d,transls_3d
 
-# 方式3：q组固定基+r个可变基
-# quotient, remainder = divmod(num_bases, b)：商和余数
-def get_rots6d_transls3d_v2(num_bases):
-    bases_fixed = [t_x,t_y,t_z,r_x,r_y,r_z] # 6个基（三平移+三旋转）
-    
-    quotient, remainder = divmod(num_bases, len(bases_fixed))
-    print(f"num_bases: {num_bases} | quotient: {quotient} | remainder: {remainder}")      # 输出: 商: 3
-    
-    # 固定基:quotient组，quotient*6
-    bases =  bases_fixed*quotient
-    # print(f"bases: {bases}")
-    # print(bases_fixed[0]==bases_fixed[6])
-    
-    # 可变基：remainder
-    for i in range(remainder):
-        bases.append(e_mat) # 添加
-        
-    # print(f"bases: {bases} | bases_len:: {len(bases)}")
-    # print(bases[0]==bases[6])
-    
-    bases = torch.from_numpy(np.array(bases,dtype=np.float32))
-    rots_6d = rmat_to_cont_6d(bases[:,:3,:3]).to(device)
-    transls_3d = bases[:,:3,-1].to(device)
-    # print(f"\nbases:\n{bases} {bases.shape}")
-    # print(f"rots_6d:\n{rots_6d} {rots_6d.shape}")
-    # print(f"transls_3d:\n{transls_3d} {transls_3d.shape}")
-    return rots_6d,transls_3d
-
-    
-    
-    
-    
-# get_rots6d_transls3d_v2(14) 
-    
 
 # coefs = init_motion_coefs(18936,80,num_base).to(device)
 # print(f"coefs:\n{coefs} {coefs.shape}")

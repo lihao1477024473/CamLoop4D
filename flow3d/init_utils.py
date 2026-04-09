@@ -10,7 +10,6 @@ import roma
 import torch
 import torch.nn.functional as F
 from torch import Tensor
-from torch import nn # lihao-mof,add
 from cuml import HDBSCAN, KMeans
 from loguru import logger as guru
 from matplotlib.pyplot import get_cmap
@@ -453,18 +452,16 @@ def init_motion_params_with_procrustes(
     # init_rots2 = moflh.rots_6d # [B,6]
     # init_ts2 = moflh.transls_3d # [b,3]
     # 方式2：250814
-    init_rots2,init_ts2 = moflh.get_rots6d_transls3d(num_bases)  # bases = 6 + x
-    # init_rots2,init_ts2 = moflh.get_rots6d_transls3d_v2(num_bases) # q*6个定基+ r个可变基
+    init_rots2,init_ts2 = moflh.get_rots6d_transls3d(num_bases)
     # print(motion_coefs.device,init_ts.device,init_ts2.device)
     # motion_coefs = moflh.compute_coef(motion_coefs,init_ts,init_ts2.to("cpu")) # ts
     # motion_coefs1 = moflh.compute_coef(motion_coefs,init_rots,init_rots2.to("cpu")) # rots
-    guru.info(f"{motion_coefs.shape=} {init_rots2.shape=} {init_ts2.shape=}")
+    # guru.info(f"{motion_coefs.shape=} {init_rots2.shape=} {init_ts2.shape=}")
     
     # [2] 尝试：或者将som的系数直接给他
     # print(f"motion_coefs1[2]:{motion_coefs1.shape}")
     # motion_coefs = motion_coefs.reshape(1, 1, num_bases).repeat(num_gaussians, num_frames, 1)
-    # motion_coefs = motion_coefs.reshape(num_gaussians, 1, num_bases).repeat(1, num_frames, 1)
-    motion_coefs = motion_coefs.reshape(motion_coefs.shape[0], 1, num_bases).repeat(1, num_frames, 1)
+    motion_coefs = motion_coefs.reshape(num_gaussians, 1, num_bases).repeat(1, num_frames, 1)
     print(f"motion_coefs[repeat]:{motion_coefs.shape}")
     # exit()
 
@@ -496,53 +493,14 @@ def run_initial_optim(
     :param motion_coefs: [num_bases, num_frames]
     :param means: [num_gaussians, 3]
     """
-    # optimizer = torch.optim.Adam(
-    #     [
-    #         {"params": bases.params["rots"], "lr": 1e-2},
-    #         {"params": bases.params["transls"], "lr": 3e-2},
-    #         {"params": fg.params["motion_coefs"], "lr": 1e-2},
-    #         {"params": fg.params["means"], "lr": 1e-3},
-    #     ],
-    # )
-    # =====================lihao-mof==========================
-    # 方式1：fronze rots/transls：6个基，全冻结
-    # optimizer = torch.optim.Adam(
-    #     [
-    #         # {"params": bases.params["rots"], "lr": 1e-2},
-    #         # {"params": bases.params["transls"], "lr": 3e-2},
-    #         {"params": fg.params["motion_coefs"], "lr": 1e-2},
-    #         {"params": fg.params["means"], "lr": 1e-3},
-    #     ],
-    # )
-    # # 方式2：fronze rots/transls：全冻结前6个基，参与优化
-    # # "rots"
-    # rots_subset = bases.params["rots"][6:].clone().detach()
-    # rots_param = nn.Parameter(rots_subset, requires_grad=True)
-    # # transls
-    # transl_subset = bases.params["transls"][6:].clone().detach()
-    # transl_param = nn.Parameter(transl_subset, requires_grad=True)
-    # optimizer = torch.optim.Adam(
-    #     [
-    #         # {"params": bases.params["rots"][6:].requires_grad_(True), "lr": 1e-2},
-    #         # {"params": bases.params["transls"][6:].requires_grad_(True), "lr": 3e-2},
-    #         {"params":  rots_param, "lr": 1e-2},
-    #         {"params": transl_param, "lr": 3e-2},
-    #         {"params": fg.params["motion_coefs"], "lr": 1e-2},
-    #         {"params": fg.params["means"], "lr": 1e-3},
-    #     ],
-    # )
-
-    # 方式3：fronze rots/transls：全冻结前6个基，参与优化
     optimizer = torch.optim.Adam(
         [
-            {"params": bases.get_trainable_params()["rots"], "lr": 1e-2},
-            {"params": bases.get_trainable_params()["transls"], "lr": 3e-2},
+            {"params": bases.params["rots"], "lr": 1e-2},
+            {"params": bases.params["transls"], "lr": 3e-2},
             {"params": fg.params["motion_coefs"], "lr": 1e-2},
             {"params": fg.params["means"], "lr": 1e-3},
         ],
     )
-
-    # =====================lihao-mof==========================
     scheduler = torch.optim.lr_scheduler.ExponentialLR(
         optimizer, gamma=0.1 ** (1 / num_iters)
     )
@@ -569,7 +527,7 @@ def run_initial_optim(
     pbar = tqdm(range(0, num_iters))
     for i in pbar:
         coefs = fg.get_coefs()
-        print(f"---------------------------ts: {ts} coefs={coefs.shape}")
+        print(f"---------------------------ts: {ts}")
         # exit(-1)
         transfms = bases.compute_transforms(ts, coefs)
         positions = torch.einsum(
@@ -618,43 +576,16 @@ def run_initial_optim(
 
             loss += loss_depth_in_range * w_smooth_func(i, 0.05, 0.5, 400)
 
-        # motion_coef_sparse_loss = 1 - (coefs**2).sum(dim=-1).mean() # 原始
-        # loss += motion_coef_sparse_loss * 0.01 # 原始
-        # ==========lihao-mof====================================
-        # 方式1
-        # loss += motion_coef_sparse_loss * 1.0 # [lihao-mof]***有效;2506
-        # loss += motion_coef_sparse_loss * 0.8 # [lihao-mof];250819;0.5
+        motion_coef_sparse_loss = 1 - (coefs**2).sum(dim=-1).mean()
+        # loss += motion_coef_sparse_loss * 0.01
+        loss += motion_coef_sparse_loss * 1.0 # [lihao-mof]***有效
 
-        # 方式2：250831
-        print(f"{coefs[...,:6].shape=} {coefs[...,6:].shape=}")
-        alpha = 0.8
-        # # 算法1
-        # coefs = torch.cat([alpha*coefs[...,:6], (1-alpha)*coefs[...,6:]], dim=-1) # 固定+可变
-        # motion_coef_sparse_loss = 1 - (coefs**2).sum(dim=-1).mean()
-        # 算法2
-        # 方式1
-        coef_loss_frozenBase = 1 - (coefs[...,:6]**2).sum(dim=-1).mean()
-        coef_loss_trainable = 1 - (coefs[...,6:]**2).sum(dim=-1).mean()
-        # 方式2
-        # coef_loss_frozenBase = (coefs[...,:6]**2).sum(dim=-1).mean()
-        # coef_loss_trainable = (coefs[...,6:]**2).sum(dim=-1).mean()
-        motion_coef_sparse_loss = alpha * coef_loss_frozenBase + (1-alpha)*coef_loss_trainable
-        # exit(-1)
-        loss += motion_coef_sparse_loss * 1.0 # [lihao-mof];250831,1，0.5
-        # ==========lihao-mof====================================
-        
 
         # motion basis should be smooth.
         w_smooth = w_smooth_func(i, 0.01, 0.1, 400)
         small_acc_loss = compute_se3_smoothness_loss(
             bases.params["rots"], bases.params["transls"]
         )
-        # # ==========lihao-mof====================================
-        # # 增加冻冻结基计算平滑性
-        # w_smooth = w_smooth_func(i, 0.01, 0.15, 350)
-        # rots,transls = bases.get_full_parameters_v2(bases.params["rots"],bases.params["transls"])
-        # small_acc_loss = compute_se3_smoothness_loss(rots,transls)
-        # # ==========lihao-mof====================================
         loss += small_acc_loss * w_smooth
 
         small_acc_loss_tracks = compute_accel_loss(positions)

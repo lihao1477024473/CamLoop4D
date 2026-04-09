@@ -68,17 +68,15 @@ class TrainConfig:
     optim: OptimizerConfig
     num_fg: int = 40_000 # 40_000
     # num_bg: int = 100_000
-    num_bg: int = 40_000 # lihao-mof，60_000,40_000
-    # num_motion_bases: int = 10
-    num_motion_bases: int = 25 # lihao,3,6,10,15,20,25,30;6+18;【ipnone上=6+4，统一用6+4】
-    # num_motion_bases: int = 6*2+3 # lihao,3,6,10,15,20,25,30;6+18;【ipnone上=6+4，统一用6+4】
+    num_bg: int = 40_000 # lihao-mof，60_000,
+    num_motion_bases: int = 10
+    # num_motion_bases: int = 25 # lihao,3,6,10,15,20,25,30
     num_epochs: int = 500 
-    # num_epochs: int = 700 # lihao
+    # num_epochs: int = 1000 # lihao
     port: int | None = None
     vis_debug: bool = False 
     batch_size: int = 8
     num_dl_workers: int = 4
-    # batch_size: int = 4 # lihao-mof，
     # num_dl_workers: int = 2 # lihao-mof，
     validate_every: int = 50
     save_videos_every: int = 50
@@ -86,7 +84,7 @@ class TrainConfig:
 
 
 def main(cfg: TrainConfig):
-    # backup_code(cfg.work_dir)
+    backup_code(cfg.work_dir)
     train_dataset, train_video_view, val_img_dataset, val_kpt_dataset = (
         get_train_val_datasets(cfg.data, load_val=True)
     )
@@ -207,26 +205,13 @@ def initialize_and_checkpoint_model(
     # run initial optimization
     Ks = train_dataset.get_Ks().to(device)
     w2cs = train_dataset.get_w2cs().to(device)
-    run_initial_optim(fg_params, motion_bases, tracks_3d, Ks, w2cs, 
-                    #   num_iters=10 # lihao-mof，测试用
-                      )
+    run_initial_optim(fg_params, motion_bases, tracks_3d, Ks, w2cs)
     if vis and cfg.port is not None:
         server = get_server(port=cfg.port)
         vis_init_params(server, fg_params, motion_bases)
 
-    camera_poses = init_trainable_poses(w2cs)
 
-    # ======================================lihao-mof-add=====================================(x 不可行)
-    # 返回完整的 rots 和 transls（冻结 + 可训练）
-    # full_rots, full_transls = motion_bases.get_full_parameters()
-    # # 更新模型参数
-    # with torch.no_grad():
-    #     # 确保设备一致（如 GPU/CPU）
-    #     device = motion_bases.params["rots"].device
-    #     motion_bases.params["rots"].data.copy_(full_rots.to(device))
-    #     motion_bases.params["transls"].data.copy_(full_transls.to(device))
-    # print("***",motion_bases,motion_bases.params["rots"].shape)
-    # ======================================lihao-mof-add=====================================
+    camera_poses = init_trainable_poses(w2cs)
 
     model = SceneModel(
         Ks, 
@@ -237,24 +222,6 @@ def initialize_and_checkpoint_model(
         bg_params,
         cfg.use_2dgs,
     )
-
-    # # ======================================lihao-mof-add=====================================(x 不可行)
-    # # 返回完整的 rots 和 transls（冻结 + 可训练）
-    # full_rots, full_transls = motion_bases.get_full_parameters()
-    # # 更新模型参数
-    # with torch.no_grad():
-    #     # 确保设备一致（如 GPU/CPU）
-    #     device = model.motion_bases.params["rots"].device
-        
-    #     # # 更新旋转参数
-    #     # self.params["rots"].data.copy_(checkpoint["rots"].to(device))
-        
-    #     # # 更新平移参数
-    #     # self.params["transls"].data.copy_(checkpoint["transls"].to(device))
-
-    #     model.motion_bases.params["rots"].data.copy_(full_rots.to(device))
-    #     model.motion_bases.params["transls"].data.copy_(full_transls.to(device))
-    # # ======================================lihao-mof-add=====================================
 
     guru.info(f"Saving initialization to {ckpt_path}")
     os.makedirs(os.path.dirname(ckpt_path), exist_ok=True)
