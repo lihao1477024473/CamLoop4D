@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # path_ckpt = fr"D:\AIGC\code\som-change\lh\lily-dragon_lemniscate_maskAllOneCls_py_change_sample05_mofBase\checkpoints\last.ckpt"
 
 dataName="backpack" # paper-windmill,spin,backpack
-out="lh38"
+out="lh30"
 path_ckpt =  f"/root/autodl-tmp/som-change/{out}/{dataName}/checkpoints/last.ckpt"
 
 
