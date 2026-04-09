@@ -10,7 +10,6 @@ import roma
 import torch
 import torch.nn.functional as F
 from torch import Tensor
-from torch import nn # lihao-mof,add
 from cuml import HDBSCAN, KMeans
 from loguru import logger as guru
 from matplotlib.pyplot import get_cmap
@@ -505,43 +504,14 @@ def run_initial_optim(
     #     ],
     # )
     # =====================lihao-mof==========================
-    # 方式1：fronze rots/transls：6个基，全冻结
-    # optimizer = torch.optim.Adam(
-    #     [
-    #         # {"params": bases.params["rots"], "lr": 1e-2},
-    #         # {"params": bases.params["transls"], "lr": 3e-2},
-    #         {"params": fg.params["motion_coefs"], "lr": 1e-2},
-    #         {"params": fg.params["means"], "lr": 1e-3},
-    #     ],
-    # )
-    # # 方式2：fronze rots/transls：全冻结前6个基，参与优化
-    # # "rots"
-    # rots_subset = bases.params["rots"][6:].clone().detach()
-    # rots_param = nn.Parameter(rots_subset, requires_grad=True)
-    # # transls
-    # transl_subset = bases.params["transls"][6:].clone().detach()
-    # transl_param = nn.Parameter(transl_subset, requires_grad=True)
-    # optimizer = torch.optim.Adam(
-    #     [
-    #         # {"params": bases.params["rots"][6:].requires_grad_(True), "lr": 1e-2},
-    #         # {"params": bases.params["transls"][6:].requires_grad_(True), "lr": 3e-2},
-    #         {"params":  rots_param, "lr": 1e-2},
-    #         {"params": transl_param, "lr": 3e-2},
-    #         {"params": fg.params["motion_coefs"], "lr": 1e-2},
-    #         {"params": fg.params["means"], "lr": 1e-3},
-    #     ],
-    # )
-
-    # 方式3：fronze rots/transls：全冻结前6个基，参与优化
     optimizer = torch.optim.Adam(
         [
-            {"params": bases.get_trainable_params()["rots"], "lr": 1e-2},
-            {"params": bases.get_trainable_params()["transls"], "lr": 3e-2},
+            # {"params": bases.params["rots"], "lr": 1e-2},
+            # {"params": bases.params["transls"], "lr": 3e-2},
             {"params": fg.params["motion_coefs"], "lr": 1e-2},
             {"params": fg.params["means"], "lr": 1e-3},
         ],
     )
-
     # =====================lihao-mof==========================
     scheduler = torch.optim.lr_scheduler.ExponentialLR(
         optimizer, gamma=0.1 ** (1 / num_iters)
@@ -569,7 +539,7 @@ def run_initial_optim(
     pbar = tqdm(range(0, num_iters))
     for i in pbar:
         coefs = fg.get_coefs()
-        print(f"---------------------------ts: {ts} coefs={coefs.shape}")
+        print(f"---------------------------ts: {ts}")
         # exit(-1)
         transfms = bases.compute_transforms(ts, coefs)
         positions = torch.einsum(
@@ -618,6 +588,7 @@ def run_initial_optim(
 
             loss += loss_depth_in_range * w_smooth_func(i, 0.05, 0.5, 400)
 
+<<<<<<< Updated upstream
         # motion_coef_sparse_loss = 1 - (coefs**2).sum(dim=-1).mean() # 原始
         # loss += motion_coef_sparse_loss * 0.01 # 原始
         # ==========lihao-mof====================================
@@ -643,6 +614,12 @@ def run_initial_optim(
         loss += motion_coef_sparse_loss * 1.0 # [lihao-mof];250831,1，0.5
         # ==========lihao-mof====================================
         
+=======
+        motion_coef_sparse_loss = 1 - (coefs**2).sum(dim=-1).mean()
+        # loss += motion_coef_sparse_loss * 0.01
+        loss += motion_coef_sparse_loss * 1.0 # [lihao-mof]***有效
+
+>>>>>>> Stashed changes
 
         # motion basis should be smooth.
         w_smooth = w_smooth_func(i, 0.01, 0.1, 400)

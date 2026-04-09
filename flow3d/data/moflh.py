@@ -68,6 +68,7 @@ def uniform_sample(data, sample_rate):
     sampled_data = [data[int(np.floor(i))] for i in indices]
     return sampled_data
 
+<<<<<<< Updated upstream
 # 张量采样：不能超过指定的点数
 def uniform_sample_points(tensor: torch.Tensor, threshold: int = 50000) -> torch.Tensor:
     N = tensor.shape[0]
@@ -180,6 +181,8 @@ def random_sample_points(tensor: torch.Tensor, rate: float, threshold: int = 500
 
     return tensor[indices]  # [N_target, F, B]
 
+=======
+>>>>>>> Stashed changes
 def init_motion_coefs(N,F,B,alg="randn"):
     # # 250615
     # coefs = torch.randn(N, F, B) # 初始化为标准正态分布 N(0, 1)
@@ -223,10 +226,6 @@ def compute_coef(coef1,base1,base2):
 
     return coef2
 
-
-def check_bases_sizes(rots, transls):
-    # 示例函数，确保 rots 和 transls 尺寸匹配
-    return rots.shape[0] == transls.shape[0]
 
 # 六个基本运动基的 4x4 矩阵表示（在 se(3) 中）
 # 三个平移基

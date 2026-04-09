@@ -25,8 +25,6 @@ from flow3d.vis.utils import get_server
 from flow3d.vis.viewer import DynamicViewer
 from flow3d.normal_utils import depth_to_normal
 
-from flow3d.data import moflh
-
 class Trainer:
     def __init__(
         self,
@@ -702,6 +700,7 @@ class Trainer:
             )
         else:
             is_radius_too_big = torch.zeros_like(is_grad_too_high, dtype=torch.bool)
+
         should_split = is_grad_too_high & (is_scale_too_big | is_radius_too_big)
         should_dup = is_grad_too_high & ~is_scale_too_big
 
@@ -786,26 +785,22 @@ class Trainer:
         should_bg_cull = should_cull[num_fg:]
 
         fg_param_map = self.model.fg.cull_params(should_fg_cull)
-        # keep_fg_num = self.model.fg.params["motion_coefs"][~should_fg_cull].shape[0] # lihao-mof-add-0
-        # fg_param_map,indices_fg = self.model.fg.cull_params_v2(should_fg_cull,type_point="fg") # lihao-mof-0
         for param_name, new_params in fg_param_map.items():
             full_param_name = f"fg.params.{param_name}"
             optimizer = self.optimizers[full_param_name]
             remove_from_optim(optimizer, [new_params], should_fg_cull)
-            # remove_from_optim_v2(optimizer, [new_params], should_fg_cull,indices_fg)# lihao-mof-1
 
         if self.model.bg is not None:
             bg_param_map = self.model.bg.cull_params(should_bg_cull)
-            # bg_param_map,indices_bg = self.model.bg.cull_params_v2(should_bg_cull,type_point="bg")# lihao-mof-2
             for param_name, new_params in bg_param_map.items():
                 full_param_name = f"bg.params.{param_name}"
                 optimizer = self.optimizers[full_param_name]
                 remove_from_optim(optimizer, [new_params], should_bg_cull)
-                # remove_from_optim_v2(optimizer, [new_params], should_bg_cull,indices_bg) # lihao-mof-3
 
         # update running stats
         for k, v in self.running_stats.items():
             self.running_stats[k] = v[~should_cull]
+<<<<<<< Updated upstream
             # print(f"before========================lihao-mof-add======================self.running_stats | {k}: {self.running_stats[k].shape}")
             # # self.running_stats[k] = moflh.uniform_sample_points(self.running_stats[k])
             # # self.running_stats[k] = self.running_stats[k][indices_fg] # lihao-mod-4
@@ -816,6 +811,8 @@ class Trainer:
             # self.running_stats[k] = self.running_stats[k][indices] # lihao-mod-4
             # print(f"after========================lihao-mof-add======================self.running_stats | {k}: {self.running_stats[k].shape}")
         
+=======
+>>>>>>> Stashed changes
 
         guru.info(
             f"Culled {should_cull.sum().item()} gaussians, "
@@ -860,12 +857,8 @@ class Trainer:
                 fnc = lambda _, **__: 1.0
             
             # ===========================lihao-mof========================frozen
-            # 方式1：frozen .rots/transls
-            # if name in ["motion_bases.params.rots","motion_bases.params.transls"]:
-            #     print("*******************************************no optimize: {name} |  ['motion_bases.params.rots','motion_bases.params.transls']")
-            #     continue
-            # 方式2：frozen .rots/transls前6个基
             if name in ["motion_bases.params.rots","motion_bases.params.transls"]:
+<<<<<<< Updated upstream
                 # print("*******************************************no optimize: {name} |  ['motion_bases.params.rots','motion_bases.params.transls']")
                 # continue
                 
@@ -884,6 +877,10 @@ class Trainer:
                 # print(name,type(name)),仅有可变基
                 name_rt = name.split(".")[-1]
                 optim = torch.optim.Adam([{"params": self.model.motion_bases.get_trainable_params()[name_rt], "lr": lr, "name": name}])
+=======
+                print("*******************************************no optimize: {name} |  ['motion_bases.params.rots','motion_bases.params.transls']")
+                continue
+>>>>>>> Stashed changes
             # ===========================lihao-mof========================frozen
 
             optimizers[name] = optim
@@ -929,46 +926,6 @@ def remove_from_optim(optimizer, new_params: list, _should_cull: torch.Tensor):
             if key == "step":
                 continue
             param_state[key] = param_state[key][~_should_cull]
-        del optimizer.state[old_params]
-        optimizer.state[p_new] = param_state
-        optimizer.param_groups[i]["params"] = [p_new]
-        del old_params
-        torch.cuda.empty_cache()
-
-def remove_from_optim_v2(optimizer, new_params: list, _should_cull: torch.Tensor,indices: torch.Tensor):
-    assert len(optimizer.param_groups) == len(new_params)
-    for i, p_new in enumerate(new_params):
-        old_params = optimizer.param_groups[i]["params"][0]
-        # print(f"lihao-mof-0-------------------------------------------------------old_params={old_params.shape} {type(old_params)} _should_cull={_should_cull.shape}")
-        # old_params = moflh.uniform_sample_points(old_params) # lihao-mof
-        # _should_cull = moflh.uniform_sample_points(_should_cull) # lihao-mod,add
-        # print(f"lihao-mof-1-------------------------------------------------------old_params={old_params.shape} _should_cull={_should_cull.shape}")
-        param_state = optimizer.state[old_params]
-        # print(f"lihao-mof-------------------------------------------------------param_state={param_state}")
-        if len(param_state) == 0:
-            return
-        for key in param_state:
-            if key == "step":
-                continue
-
-            # # ====lihao-mof-add========
-            # print(f"lihao-mof-0-------key={key}",param_state[key].shape)
-            # if key in ["exp_avg","exp_avg_sq"]:
-            #     # param_state[key] = moflh.uniform_sample_points(param_state[key]) # lihao-mof
-            #     param_state[key] = param_state[key][~_should_cull] # lihao-mof
-            # print(f"lihao-mof-1-------key={key}",param_state[key].shape)
-            # # ====lihao-mof-add========
-
-            param_state[key] = param_state[key][~_should_cull]
-
-            # ====lihao-mof-add========
-            # print(f"lihao-mof-0-------key={key}",param_state[key].shape)
-            if key in ["exp_avg","exp_avg_sq"]:
-                # param_state[key] = moflh.uniform_sample_points(param_state[key]) # lihao-mof
-                param_state[key] = param_state[key][indices] # lihao-mof
-            # print(f"lihao-mof-1-------key={key}",param_state[key].shape)
-            # ====lihao-mof-add========
-
         del optimizer.state[old_params]
         optimizer.state[p_new] = param_state
         optimizer.param_groups[i]["params"] = [p_new]

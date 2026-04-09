@@ -2,6 +2,7 @@ cd ..
 
 # no-skip_load_imgs: skip_load_imgs=False;no-use_2dgs: use_2dgs=False
 # iphone,backpack,paper-windmill；spin
+<<<<<<< Updated upstream
 # dataName="backpack"
 # out="lh39"
 # python render_tracks.py \
@@ -11,6 +12,16 @@ cd ..
 #     trajectory:lemniscate \
 #     time:replay
 
+=======
+dataName="spin"
+model="any4d-v2.0"
+python render_tracks.py \
+    --work_dir /root/autodl-tmp/${model}/lh/${dataName} \
+    --no-use_2dgs \
+    data:iphone --data.data_dir  /root/autodl-tmp/data/${dataName} --data.no-skip_load_imgs \
+    trajectory:lemniscate \
+    time:replay
+>>>>>>> Stashed changes
 
 # # custom
 # python render_tracks.py \
@@ -44,6 +55,7 @@ cd ..
 # retriever2,sheep,sika1; | # lily-dragon_lemniscate;lily-dragon_move-backward,,lily-dragon_move-right,lily-dragon_orbit,lily-dragon_zoom-out
 # vasedeck_lemniscate
 # blue-car_lemniscate,blue-car_orbit
+<<<<<<< Updated upstream
 # dataType="ac3d2som" # seva2som,ac3d2som,maskAll, 
 model="any4d-v3.9"
 out="lhDavis350"
@@ -60,5 +72,19 @@ python render_tracks.py \
     data:custom --data.data_dir /root/autodl-tmp/data/${dirData} --data.camera-type droid_recon --data.seq_name ${name} \
     trajectory:wander\
     time:replay
+=======
+# dataType="ac3d2som" # seva2som,ac3d2som,maskAll 
+# nameFolder="maskfg_select250625" 
+# name="tiger1_00007"
+# nameTrain="${name}_${nameFolder}_change_sample10_mofBase12_repeat_useSomCoef_numBases25"
+# # nameTrain="${name}_${nameFolder}"
+# dirData="${dataType}/${nameFolder}"
+# python render_tracks.py \
+#     --work_dir /root/autodl-tmp/som-change/lh/${nameTrain} \
+#     --no-use_2dgs \
+#     data:custom --data.data_dir /root/autodl-tmp/data/${dirData} --data.camera-type droid_recon --data.seq_name ${name} \
+#     trajectory:wander\
+#     time:replay
+>>>>>>> Stashed changes
     
     

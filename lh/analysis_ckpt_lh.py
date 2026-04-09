@@ -8,9 +8,8 @@ import matplotlib.pyplot as plt
 # # path_ckpt = fr"D:\AIGC\code\shape-of-motion-main\lh\{name}\checkpoints\last.ckpt"
 # path_ckpt = fr"D:\AIGC\code\som-change\lh\lily-dragon_lemniscate_maskAllOneCls_py_change_sample05_mofBase\checkpoints\last.ckpt"
 
-dataName="backpack" # paper-windmill,spin,backpack
-out="lh30"
-path_ckpt =  f"/root/autodl-tmp/som-change/{out}/{dataName}/checkpoints/last.ckpt"
+dataName="paper-windmill" # paper-windmill,spin,backpack
+path_ckpt =  f"/root/autodl-tmp/som-change/lh/{dataName}/checkpoints/last.ckpt"
 
 
 checkpoint = torch.load(path_ckpt,weights_only=False)
@@ -32,13 +31,7 @@ for k,v in checkpoint.items():
     print(k,type(v))
     if k == "model":
         for k1,v1 in v.items():
-            if k1 in ["motion_bases.params.rots",
-                    #   "motion_bases.params.rots_fronze",
-                      "motion_bases.rots_frozen",
-                      "motion_bases.params.transls",
-                    #   "motion_bases.params.transls_fronze",
-                      "motion_bases.transls_frozen",
-                      "fg.params.motion_coefs"]:
+            if k1 in ["motion_bases.params.rots","motion_bases.params.transls","fg.params.motion_coefs"]:
                 print(k1,v1.shape,v1)
             else:
                 print(k1,v1.shape)
