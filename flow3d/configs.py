@@ -77,11 +77,7 @@ class OptimizerConfig:
     densify_scale_threshold: float = 0.01
     densify_screen_threshold: float = 0.05
     stop_densify_steps: int = 15000
-    # stop_densify_steps: int = 10000 # lihao-mof
     ### Cull.
     cull_opacity_threshold: float = 0.1
     cull_scale_threshold: float = 0.5
     cull_screen_threshold: float = 0.15
-    # cull_opacity_threshold: float = 0.15 # lihao-mof
-    # cull_scale_threshold: float = 0.6 # lihao-mof
-    # cull_screen_threshold: float = 0.18 # lihao-mof

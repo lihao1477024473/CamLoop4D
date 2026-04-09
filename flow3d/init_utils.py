@@ -453,12 +453,11 @@ def init_motion_params_with_procrustes(
     # init_rots2 = moflh.rots_6d # [B,6]
     # init_ts2 = moflh.transls_3d # [b,3]
     # 方式2：250814
-    init_rots2,init_ts2 = moflh.get_rots6d_transls3d(num_bases)  # bases = 6 + x
-    # init_rots2,init_ts2 = moflh.get_rots6d_transls3d_v2(num_bases) # q*6个定基+ r个可变基
+    init_rots2,init_ts2 = moflh.get_rots6d_transls3d(num_bases)
     # print(motion_coefs.device,init_ts.device,init_ts2.device)
     # motion_coefs = moflh.compute_coef(motion_coefs,init_ts,init_ts2.to("cpu")) # ts
     # motion_coefs1 = moflh.compute_coef(motion_coefs,init_rots,init_rots2.to("cpu")) # rots
-    guru.info(f"{motion_coefs.shape=} {init_rots2.shape=} {init_ts2.shape=}")
+    # guru.info(f"{motion_coefs.shape=} {init_rots2.shape=} {init_ts2.shape=}")
     
     # [2] 尝试：或者将som的系数直接给他
     # print(f"motion_coefs1[2]:{motion_coefs1.shape}")
@@ -627,22 +626,19 @@ def run_initial_optim(
 
         # 方式2：250831
         print(f"{coefs[...,:6].shape=} {coefs[...,6:].shape=}")
-        alpha = 0.8
+        alpha = 0.6
         # # 算法1
         # coefs = torch.cat([alpha*coefs[...,:6], (1-alpha)*coefs[...,6:]], dim=-1) # 固定+可变
         # motion_coef_sparse_loss = 1 - (coefs**2).sum(dim=-1).mean()
         # 算法2
-        # 方式1
         coef_loss_frozenBase = 1 - (coefs[...,:6]**2).sum(dim=-1).mean()
         coef_loss_trainable = 1 - (coefs[...,6:]**2).sum(dim=-1).mean()
-        # 方式2
-        # coef_loss_frozenBase = (coefs[...,:6]**2).sum(dim=-1).mean()
-        # coef_loss_trainable = (coefs[...,6:]**2).sum(dim=-1).mean()
         motion_coef_sparse_loss = alpha * coef_loss_frozenBase + (1-alpha)*coef_loss_trainable
         # exit(-1)
-        loss += motion_coef_sparse_loss * 1.0 # [lihao-mof];250831,1，0.5
+        loss += motion_coef_sparse_loss * 1 # [lihao-mof];250831,1
         # ==========lihao-mof====================================
-        
+
+
 
         # motion basis should be smooth.
         w_smooth = w_smooth_func(i, 0.01, 0.1, 400)
@@ -651,7 +647,6 @@ def run_initial_optim(
         )
         # # ==========lihao-mof====================================
         # # 增加冻冻结基计算平滑性
-        # w_smooth = w_smooth_func(i, 0.01, 0.15, 350)
         # rots,transls = bases.get_full_parameters_v2(bases.params["rots"],bases.params["transls"])
         # small_acc_loss = compute_se3_smoothness_loss(rots,transls)
         # # ==========lihao-mof====================================

@@ -85,7 +85,7 @@ def uniform_sample_points(tensor: torch.Tensor, threshold: int = 50000) -> torch
         return indices
 
 # 张量采样：动态高斯不能超过指定的点数;fg + bg
-def uniform_sample_points_v2(tensor: torch.Tensor, threshold_fg: int = 100000,type_point="fg",enable: bool =False) -> torch.Tensor:
+def uniform_sample_points_v2(tensor: torch.Tensor, threshold_fg: int = 200000,type_point="fg",enable: bool =False) -> torch.Tensor:
     N = tensor.shape[0]
     device=tensor.device
     indices = torch.arange(N,device=device)
@@ -94,48 +94,14 @@ def uniform_sample_points_v2(tensor: torch.Tensor, threshold_fg: int = 100000,ty
          return indices
     
     # 启用采样
-    # b = type_point == "fg"
-    # print(f"N={N} | threshold_fg={threshold_fg} {b} {type_point}")
     if type_point == "fg":
-        # print(f"N={N} | threshold_fg={threshold_fg}")
         if N <= threshold_fg:
             return indices
         else:
-            # print("--------")
             rate = threshold_fg/N
             N_target = int(round(N * rate))
             N_target = max(1, N_target)
             indices = torch.linspace(0, N - 1, N_target, dtype=torch.long, device=tensor.device) # 生成均匀索引（在 GPU 上）
-            indices = torch.unique(indices)
-            return indices
-    else:
-        return indices
-
-# 张量采样：动态高斯不能超过指定的点数;fg + bg
-def random_sample_indices(tensor: torch.Tensor, threshold_fg: int = 100000,type_point="fg",enable: bool =False) -> torch.Tensor:
-    N = tensor.shape[0]
-    device=tensor.device
-    indices = torch.arange(N,device=device)
-    # 不启用采样
-    if enable == False:
-         return indices
-    
-    # 启用采样
-    # b = type_point == "fg"
-    # print(f"N={N} | threshold_fg={threshold_fg} {b} {type_point}")
-    if type_point == "fg":
-        # print(f"N={N} | threshold_fg={threshold_fg}")
-        if N <= threshold_fg:
-            return indices
-        else:
-            # print("--------")
-            rate = threshold_fg/N
-            N_target = int(round(N * rate))
-            N_target = max(1, N_target)
-            # 均匀
-            # indices = torch.linspace(0, N - 1, N_target, dtype=torch.long, device=tensor.device) # 生成均匀索引（在 GPU 上）
-            #随机打乱所有索引，取前 N_target 个
-            indices = torch.randperm(N, device=tensor.device)[:N_target]
             indices = torch.unique(indices)
             return indices
     else:
@@ -321,40 +287,6 @@ def get_rots6d_transls3d(num_bases):
     # print(f"transls_3d:\n{transls_3d} {transls_3d.shape}")
     return rots_6d,transls_3d
 
-# 方式3：q组固定基+r个可变基
-# quotient, remainder = divmod(num_bases, b)：商和余数
-def get_rots6d_transls3d_v2(num_bases):
-    bases_fixed = [t_x,t_y,t_z,r_x,r_y,r_z] # 6个基（三平移+三旋转）
-    
-    quotient, remainder = divmod(num_bases, len(bases_fixed))
-    print(f"num_bases: {num_bases} | quotient: {quotient} | remainder: {remainder}")      # 输出: 商: 3
-    
-    # 固定基:quotient组，quotient*6
-    bases =  bases_fixed*quotient
-    # print(f"bases: {bases}")
-    # print(bases_fixed[0]==bases_fixed[6])
-    
-    # 可变基：remainder
-    for i in range(remainder):
-        bases.append(e_mat) # 添加
-        
-    # print(f"bases: {bases} | bases_len:: {len(bases)}")
-    # print(bases[0]==bases[6])
-    
-    bases = torch.from_numpy(np.array(bases,dtype=np.float32))
-    rots_6d = rmat_to_cont_6d(bases[:,:3,:3]).to(device)
-    transls_3d = bases[:,:3,-1].to(device)
-    # print(f"\nbases:\n{bases} {bases.shape}")
-    # print(f"rots_6d:\n{rots_6d} {rots_6d.shape}")
-    # print(f"transls_3d:\n{transls_3d} {transls_3d.shape}")
-    return rots_6d,transls_3d
-
-    
-    
-    
-    
-# get_rots6d_transls3d_v2(14) 
-    
 
 # coefs = init_motion_coefs(18936,80,num_base).to(device)
 # print(f"coefs:\n{coefs} {coefs.shape}")
