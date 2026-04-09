@@ -8,8 +8,6 @@ from torch import Tensor
 
 from flow3d.params import GaussianParams, MotionBases, CameraScales, CameraPoses
 
-from flow3d.data import moflh
-
 
 class SceneModel(nn.Module):
     def __init__(
@@ -73,9 +71,7 @@ class SceneModel(nn.Module):
         self, ts: torch.Tensor, inds: torch.Tensor | None = None
     ) -> torch.Tensor:
         coefs = self.fg.get_coefs()  # (G, K)
-        # ========lihao-mof======================
-        # print(f"[lihao]coefs={coefs.shape} inds={inds.shape if inds is not None else inds} | [SceneModel-compute_transforms]")
-        # ========lihao-mof======================
+        print(f"[lihao]coefs={coefs.shape} inds={inds.shape if inds is not None else inds} | [SceneModel-compute_transforms]")
         if inds is not None:
             coefs = coefs[inds]
         transfms = self.motion_bases.compute_transforms(ts, coefs)  # (G, B, 3, 4)
@@ -292,7 +288,7 @@ class SceneModel(nn.Module):
             w2cs = self.camera_poses.get_camera_matrix()
             w2cs = w2cs[t].unsqueeze(0)
 
-        # print(f"==================self.use_2dgs==============={self.use_2dgs}")
+        print(f"==================self.use_2dgs==============={self.use_2dgs}")
         if self.use_2dgs:
             colors_override = torch.nan_to_num(colors_override, nan=1e-6)
             backgrounds = torch.nan_to_num(bg_color, nan=1.0)

@@ -46,6 +46,7 @@ class CameraPoses(nn.Module):
             }
         )
 
+    
     @staticmethod
     def init_from_state_dict(
         state_dict: dict[str, Tensor],
@@ -172,7 +173,7 @@ class GaussianParams(nn.Module):
 
     def get_coefs(self) -> torch.Tensor:
         assert "motion_coefs" in self.params
-        # print(f"lihao-mof[get_coefs]: {self.params["motion_coefs"].shape}")
+        print(f"lihao-mof[get_coefs]: {self.params["motion_coefs"].shape}")
         return self.motion_coef_activation(self.params["motion_coefs"])
 
     def densify_params(self, should_split, should_dup):
@@ -200,28 +201,6 @@ class GaussianParams(nn.Module):
             updated_params[name] = x_new
             self.params[name] = x_new
         return updated_params
-    
-    def cull_params_v2(self, should_cull,type_point):# lihao-mo
-        """
-        cull gaussians
-        """
-        updated_params = {}
-        for name, x in self.params.items():
-            x_new = nn.Parameter(x[~should_cull])
-            # =================lihao-mof=================================
-            # indices = moflh.uniform_sample_points(x_new)
-            # indices = moflh.uniform_sample_points_v2(x_new,type_point=type_point)
-            indices = moflh.random_sample_indices(x_new,type_point=type_point)
-            print(f"name={name} | {x.shape=}")
-            if name in ["motion_coefs","means", "quats", "scales", "colors", "opacities"]:
-                # print(f"before:   x_new={x_new.shape}")
-                # x_new = moflh.uniform_sample_points(x_new)
-                x_new = x_new[indices]
-                # print(f"after:   x_new={x_new.shape}")
-            # =================lihao-mof=================================
-            updated_params[name] = x_new
-            self.params[name] = x_new
-        return updated_params,indices
 
     def reset_opacities(self, new_val):
         """
@@ -265,19 +244,12 @@ class MotionBases(nn.Module):
         #     }
         # )
 
-        # 拆分索引
-        # 提取前6个
+        # 拆分索引：前6个冻结，其余可训练
         split_idx = 6
-
-        # # 提取前q*6个固定基
-        # quotient, remainder = divmod(self.num_bases, split_idx)
-        # split_idx = quotient * split_idx
-        
-        # if self.num_bases <= split_idx:
-        #     raise ValueError(f"num_bases ({self.num_bases}) must be greater than 6 to split.")
-        
+        if self.num_bases <= split_idx:
+            raise ValueError(f"num_bases ({self.num_bases}) must be greater than 6 to split.")
         # --- 处理 rots ---
-        rots_frozen = rots[:split_idx].clone() 
+        rots_frozen = rots[:split_idx].clone()
         rots_trainable = rots[split_idx:].clone()
         # --- 处理 transls ---
         transls_frozen = transls[:split_idx].clone()
@@ -299,8 +271,10 @@ class MotionBases(nn.Module):
             # "rots_frozen": nn.Parameter(self.rots_frozen, requires_grad=False),
             # "transls_frozen": nn.Parameter(self.transls_frozen, requires_grad=False),
         })
+
         # 保存拆分索引（用于 forward 拼接）
         self.split_idx = split_idx
+
 
         # ================================================lihao-mof-add==========================
 
@@ -449,23 +423,7 @@ class MotionBases(nn.Module):
         # rots,transls = self.forward()
         # rots,transls = self.get_full_parameters() # 实质与v2一样
         rots,transls = self.get_full_parameters_v2(rots,transls)
-
-        # # # -----------固定基推理250905-------
-        # 方式1
-        # 使用固定基
-        # coefs = coefs[...,:6]
-        # rots,transls = rots[:6,...],transls[:6,...]
-        # 使用可变基
-        # coefs = coefs[...,6:]
-        # rots,transls = rots[6:,...],transls[6:,...]
-
-        # 方式2
-        # 可变系数基置0
-        # coefs[...,6:] = 0
-        # # # -----------固定基推理-------
-        # # # -----------拉小可占比的系数250909-------
-        # coefs[...,6:] = 0.2*coefs[...,6:]
-        # # # -----------拉小可占比的系数250909-------
+        
 
         print(f"[compute_transforms-lihao-mof] coefs={coefs.shape}")
         print(f"0-[compute_transforms-lihao-mof] transls={transls.shape}")
@@ -476,7 +434,7 @@ class MotionBases(nn.Module):
 
         rotmats = cont_6d_to_rmat(rots)  # (K, B, 3, 3)
         
-        # print(f"[compute_transforms-lihao-mof] ts={ts} rots={ts.shape}")
+        print(f"[compute_transforms-lihao-mof] ts={ts} rots={ts.shape}")
         print(f"1-[compute_transforms-lihao-mof] transls={transls.shape}")
         print(f"1-[compute_transforms-lihao-mof] rots={rots.shape}")
         print(f"[compute_transforms-lihao-mof] rotmats={rotmats.shape}\n")

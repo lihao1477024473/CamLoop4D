@@ -68,17 +68,15 @@ class TrainConfig:
     optim: OptimizerConfig
     num_fg: int = 40_000 # 40_000
     # num_bg: int = 100_000
-    num_bg: int = 40_000 # lihao-mof，60_000,40_000
+    num_bg: int = 40_000 # lihao-mof，60_000,
     # num_motion_bases: int = 10
-    num_motion_bases: int = 25 # lihao,3,6,10,15,20,25,30;6+18;【ipnone上=6+4，统一用6+4】
-    # num_motion_bases: int = 6*2+3 # lihao,3,6,10,15,20,25,30;6+18;【ipnone上=6+4，统一用6+4】
+    num_motion_bases: int = 10 # lihao,3,6,10,15,20,25,30
     num_epochs: int = 500 
     # num_epochs: int = 700 # lihao
     port: int | None = None
     vis_debug: bool = False 
     batch_size: int = 8
     num_dl_workers: int = 4
-    # batch_size: int = 4 # lihao-mof，
     # num_dl_workers: int = 2 # lihao-mof，
     validate_every: int = 50
     save_videos_every: int = 50
@@ -86,7 +84,7 @@ class TrainConfig:
 
 
 def main(cfg: TrainConfig):
-    # backup_code(cfg.work_dir)
+    backup_code(cfg.work_dir)
     train_dataset, train_video_view, val_img_dataset, val_kpt_dataset = (
         get_train_val_datasets(cfg.data, load_val=True)
     )
