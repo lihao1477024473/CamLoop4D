@@ -446,13 +446,22 @@ class MotionBases(nn.Module):
         rots,transls = self.get_full_parameters_v2(rots,transls)
 
         # # # -----------固定基推理250905-------
+        # 方式1
         # 使用固定基
         # coefs = coefs[...,:6]
         # rots,transls = rots[:6,...],transls[:6,...]
         # 使用可变基
-        coefs = coefs[...,6:]
-        rots,transls = rots[6:,...],transls[6:,...]
+        # coefs = coefs[...,6:]
+        # rots,transls = rots[6:,...],transls[6:,...]
+
+        # 方式2
+        # 可变系数基置0
+        # coefs[...,6:] = 0
         # # # -----------固定基推理-------
+
+        # # # -----------拉小可占比的系数250909-------
+        # coefs[...,6:] = 0.2*coefs[...,6:]
+        # # # -----------拉小可占比的系数250909-------
 
         print(f"[compute_transforms-lihao-mof] coefs={coefs.shape}")
         print(f"0-[compute_transforms-lihao-mof] transls={transls.shape}")

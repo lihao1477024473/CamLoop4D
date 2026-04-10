@@ -626,7 +626,7 @@ def run_initial_optim(
 
         # 方式2：250831
         print(f"{coefs[...,:6].shape=} {coefs[...,6:].shape=}")
-        alpha = 0.8
+        alpha = 0.6
         # # 算法1
         # coefs = torch.cat([alpha*coefs[...,:6], (1-alpha)*coefs[...,6:]], dim=-1) # 固定+可变
         # motion_coef_sparse_loss = 1 - (coefs**2).sum(dim=-1).mean()
@@ -645,6 +645,11 @@ def run_initial_optim(
         small_acc_loss = compute_se3_smoothness_loss(
             bases.params["rots"], bases.params["transls"]
         )
+        # # ==========lihao-mof====================================
+        # # 增加冻冻结基计算平滑性
+        # rots,transls = bases.get_full_parameters_v2(bases.params["rots"],bases.params["transls"])
+        # small_acc_loss = compute_se3_smoothness_loss(rots,transls)
+        # # ==========lihao-mof====================================
         loss += small_acc_loss * w_smooth
 
         small_acc_loss_tracks = compute_accel_loss(positions)

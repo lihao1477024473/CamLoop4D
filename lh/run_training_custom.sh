@@ -51,7 +51,7 @@ model="som-change"
 dataType="ac3d2som" # ac3d2som;seva2som
 folder="maskfg_select250625" # maskAllOneCls,maskAllOneCls_py,maskAll, maskAll_select250625;select;maskfg_select250625
 dataName="tiger2_00018" # retriever1,lily-dragon_lemniscate,tiger2_00018,astronaut_00005
-nameTrain="${dataName}_${folder}_any4dv350-b18"
+nameTrain="${dataName}_${folder}_any4dv370-b18"
 dataDir="${dataType}/${folder}"
 python run_training.py \
   --work-dir /root/autodl-tmp/${model}/lh/${nameTrain} \
