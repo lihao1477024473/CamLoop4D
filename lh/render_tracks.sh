@@ -2,10 +2,10 @@ cd ..
 
 # no-skip_load_imgs: skip_load_imgs=False;no-use_2dgs: use_2dgs=False
 # iphone,backpack,paper-windmill；spin
-dataName="spin"
-model="any4d-v2.0"
+dataName="backpack"
+out="lh30"
 python render_tracks.py \
-    --work_dir /root/autodl-tmp/${model}/lh/${dataName} \
+    --work_dir /root/autodl-tmp/som-change/${out}/${dataName} \
     --no-use_2dgs \
     data:iphone --data.data_dir  /root/autodl-tmp/data/${dataName} --data.no-skip_load_imgs \
     trajectory:lemniscate \

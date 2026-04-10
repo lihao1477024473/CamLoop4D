@@ -788,9 +788,30 @@ class Trainer:
                 fnc = lambda _, **__: 1.0
             
             # ===========================lihao-mof========================frozen
+            # 方式1：frozen .rots/transls
+            # if name in ["motion_bases.params.rots","motion_bases.params.transls"]:
+            #     print("*******************************************no optimize: {name} |  ['motion_bases.params.rots','motion_bases.params.transls']")
+            #     continue
+            # 方式2：frozen .rots/transls前6个基
             if name in ["motion_bases.params.rots","motion_bases.params.transls"]:
                 print("*******************************************no optimize: {name} |  ['motion_bases.params.rots','motion_bases.params.transls']")
-                continue
+                
+                # optim = torch.optim.Adam([{"params": params[6:].requires_grad_(True), "lr": lr, "name": name}])
+                
+                # rots_subset = params[6:].clone().detach()
+                # trainable_part = param[6:]
+                # params = nn.Parameter(rots_subset, requires_grad=True)
+                # optim = torch.optim.Adam([{"params": params, "lr": lr, "name": name}])
+
+                # trainable_part = params[6:]
+                # # 确保它 requires_grad=True（应该已经是）
+                # assert trainable_part.requires_grad, "Check if rots was created with requires_grad=True"
+                # optim = torch.optim.Adam([{"params": trainable_part, "lr": lr, "name": name}])
+
+                print(name,type(name))
+                name_rt = name.split(".")[-1]
+                optim = torch.optim.Adam([{"params": self.model.motion_bases.get_trainable_params()[name_rt], "lr": lr, "name": name}])
+
             # ===========================lihao-mof========================frozen
 
             optimizers[name] = optim

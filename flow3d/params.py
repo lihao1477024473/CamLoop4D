@@ -220,12 +220,101 @@ class MotionBases(nn.Module):
         # self.num_frames = moflh.NUM_FRAME # lihao-mof
         self.num_bases = rots.shape[0] 
         assert check_bases_sizes(rots, transls)
-        self.params = nn.ParameterDict(
-            {
-                "rots": nn.Parameter(rots),
-                "transls": nn.Parameter(transls),
-            }
-        )
+
+        # self.params = nn.ParameterDict(
+        #     {
+        #         # 方式1
+        #         # "rots": nn.Parameter(rots),
+        #         # "transls": nn.Parameter(transls),
+        #     }
+        # )
+        
+        # ================================================lihao-mof-add==========================
+        # self.params = nn.ParameterDict(
+        #     {
+        #         # 方式1
+        #         # "rots": nn.Parameter(rots),
+        #         # "transls": nn.Parameter(transls),
+        #         # 方式2：
+        #         # "rots": nn.Parameter(rots,requires_grad=False), # lihao-mof;不参与梯度计算
+        #         # "transls": nn.Parameter(transls,requires_grad=False),# lihao-mof
+        #         # 方式3
+        #         "rots": nn.Parameter(rots,requires_grad=True), # lihao-mof;不参与梯度计算
+        #         "transls": nn.Parameter(transls,requires_grad=True),# lihao-mof
+        #     }
+        # )
+
+        # 拆分索引：前6个冻结，其余可训练
+        split_idx = 6
+        if self.num_bases <= split_idx:
+            raise ValueError(f"num_bases ({self.num_bases}) must be greater than 6 to split.")
+        # --- 处理 rots ---
+        rots_frozen = rots[:split_idx].clone()
+        rots_trainable = rots[split_idx:].clone()
+        # --- 处理 transls ---
+        transls_frozen = transls[:split_idx].clone()
+        transls_trainable = transls[split_idx:].clone()
+
+        # 注册冻结部分为 buffer（不参与梯度计算，但随模型移动）
+        self.register_buffer("rots_frozen", rots_frozen)
+        self.register_buffer("transls_frozen", transls_frozen)
+        # # 可训练部分：作为 Parameter
+        # self.params = nn.ParameterDict({
+        #     "rots": nn.Parameter(rots_trainable, requires_grad=True),
+        #     "transls": nn.Parameter(transls_trainable, requires_grad=True),
+        # })
+        # 冻结 + 可训练：作为 Parameter
+        self.params = nn.ParameterDict({
+            "rots": nn.Parameter(rots_trainable, requires_grad=True),
+            "transls": nn.Parameter(transls_trainable, requires_grad=True),
+
+            # "rots_frozen": nn.Parameter(self.rots_frozen, requires_grad=False),
+            # "transls_frozen": nn.Parameter(self.transls_frozen, requires_grad=False),
+        })
+
+        # 保存拆分索引（用于 forward 拼接）
+        self.split_idx = split_idx
+
+
+        # ================================================lihao-mof-add==========================
+
+
+    # ================================================lihao-mof-add==========================
+    def forward(self):
+        """
+        返回完整的 rots 和 transls（冻结 + 可训练部分拼接）
+        """
+        full_rots = torch.cat([self.rots_frozen, self.params["rots"]], dim=0)
+        full_transls = torch.cat([self.transls_frozen, self.params["transls"]], dim=0)
+        return full_rots, full_transls
+    
+    def get_full_parameters(self):
+        """
+        返回完整的 rots 和 transls（冻结 + 可训练）
+        """
+        full_rots = torch.cat([self.rots_frozen, self.params["rots"]], dim=0)
+        full_transls = torch.cat([self.transls_frozen, self.params["transls"]], dim=0)
+        return full_rots, full_transls
+    
+    def get_full_parameters_v2(self,rots,transls):
+        """
+        返回完整的 rots 和 transls（冻结 + 可训练）
+        """
+        full_rots = torch.cat([self.rots_frozen, rots], dim=0)
+        full_transls = torch.cat([self.transls_frozen, transls], dim=0)
+        return full_rots, full_transls
+    
+    def get_trainable_params(self):
+        """
+        返回所有可训练参数，用于优化器
+        """
+        # return self.params.parameters()
+        return self.params
+
+    def get_num_trainable_bases(self):
+        return self.params["rots"].shape[0]
+    # ================================================lihao-mof-add==========================
+
 
     @staticmethod
     def init_from_state_dict(state_dict, prefix="params."):
@@ -236,8 +325,31 @@ class MotionBases(nn.Module):
         print(f"state_dict={state_dict.keys()}")
         num_frames = state_dict["fg.params.motion_coefs"].shape[1]
         # num_bases = state_dict["motion_bases.params.rots"].shape[0]
+        # 固定+可变
+        rots_frozen = state_dict["motion_bases.rots_frozen"]
+        transls_frozen = state_dict["motion_bases.transls_frozen"]
+        args["rots"] = torch.cat([rots_frozen, args["rots"]], dim=0)
+        args["transls"] = torch.cat([transls_frozen, args["transls"]], dim=0)
         # =================lihao--mof==============
         return MotionBases(**args,num_frames=num_frames)
+    
+    # # @staticmethod
+    # def init_from_state_dict(self,state_dict, prefix="params."):
+    #     param_keys = ["rots", "transls"]
+    #     assert all(f"{prefix}{k}" in state_dict for k in param_keys)
+    #     args = {k: state_dict[f"{prefix}{k}"] for k in param_keys}
+    #     # =================lihao--mof==============
+    #     print(f"state_dict={state_dict.keys()}")
+    #     num_frames = state_dict["fg.params.motion_coefs"].shape[1]
+    #     # num_bases = state_dict["motion_bases.params.rots"].shape[0]
+    #     print(f"==={args=}")
+    #     # 固定+可变
+    #     device = args["rots"].device
+    #     # full_rots, full_transls = self.get_full_parameters()
+    #     args["rots"] = torch.cat([self.rots_frozen, args["rots"].to(device)], dim=0)
+    #     args["transls"] = torch.cat([self.transls_frozen, args["transls"].to(device)], dim=0)
+    #     # =================lihao--mof==============
+    #     return MotionBases(**args,num_frames=num_frames)
 
     # def compute_transforms(self, ts: torch.Tensor, coefs: torch.Tensor) -> torch.Tensor:
     #     """
@@ -252,39 +364,39 @@ class MotionBases(nn.Module):
     #     rotmats = cont_6d_to_rmat(rots)  # (K, B, 3, 3)
     #     return torch.cat([rotmats, transls[..., None]], dim=-1)
     
-    def compute_transforms(self, ts: torch.Tensor, coefs: torch.Tensor) -> torch.Tensor:
-        """
-        :param ts (B)
-        :param coefs (G,B,K)
-        returns transforms (G, B, 3, 4)
-        """
+    # def compute_transforms(self, ts: torch.Tensor, coefs: torch.Tensor) -> torch.Tensor:
+    #     """
+    #     :param ts (B)
+    #     :param coefs (G,B,K)
+    #     returns transforms (G, B, 3, 4)
+    #     """
 
-        # 原来
-        # transls = self.params["transls"][:, ts]  # (K, B, 3)
-        # rots = self.params["rots"][:, ts]  # (K, B, 6)
-        # transls = torch.einsum("pk,kni->pni", coefs, transls)
-        # rots = torch.einsum("pk,kni->pni", coefs, rots)  # (G, B, 6)
-        #rotmats = cont_6d_to_rmat(rots)  # (K, B, 3, 3)
+    #     # 原来
+    #     # transls = self.params["transls"][:, ts]  # (K, B, 3)
+    #     # rots = self.params["rots"][:, ts]  # (K, B, 6)
+    #     # transls = torch.einsum("pk,kni->pni", coefs, transls)
+    #     # rots = torch.einsum("pk,kni->pni", coefs, rots)  # (G, B, 6)
+    #     #rotmats = cont_6d_to_rmat(rots)  # (K, B, 3, 3)
 
-        # [lihao-mof]
-        coefs = coefs[:,ts] # (G,B,K)
-        transls = self.params["transls"]  # (K, 3)
-        rots = self.params["rots"]   # (K, 6)
-        print(f"[compute_transforms-lihao-mof] coefs={coefs.shape}")
-        print(f"0-[compute_transforms-lihao-mof] transls={transls.shape}")
-        print(f"0-[compute_transforms-lihao-mof] rots={rots.shape}")
-        transls = torch.einsum("pnk,ki->pni", coefs, transls) # (G, B, 3)
-        rots = torch.einsum("pnk,ki->pni", coefs, rots)  # (G, B, 6)
-        # [lihao-mof]
+    #     # [lihao-mof]
+    #     coefs = coefs[:,ts] # (G,B,K)
+    #     transls = self.params["transls"]  # (K, 3)
+    #     rots = self.params["rots"]   # (K, 6)
+    #     print(f"[compute_transforms-lihao-mof] coefs={coefs.shape}")
+    #     print(f"0-[compute_transforms-lihao-mof] transls={transls.shape}")
+    #     print(f"0-[compute_transforms-lihao-mof] rots={rots.shape}")
+    #     transls = torch.einsum("pnk,ki->pni", coefs, transls) # (G, B, 3)
+    #     rots = torch.einsum("pnk,ki->pni", coefs, rots)  # (G, B, 6)
+    #     # [lihao-mof]
 
-        rotmats = cont_6d_to_rmat(rots)  # (K, B, 3, 3)
+    #     rotmats = cont_6d_to_rmat(rots)  # (K, B, 3, 3)
         
-        print(f"[compute_transforms-lihao-mof] ts={ts} rots={ts.shape}")
-        print(f"1-[compute_transforms-lihao-mof] transls={transls.shape}")
-        print(f"1-[compute_transforms-lihao-mof] rots={rots.shape}")
-        print(f"[compute_transforms-lihao-mof] rotmats={rotmats.shape}\n")
+    #     print(f"[compute_transforms-lihao-mof] ts={ts} rots={ts.shape}")
+    #     print(f"1-[compute_transforms-lihao-mof] transls={transls.shape}")
+    #     print(f"1-[compute_transforms-lihao-mof] rots={rots.shape}")
+    #     print(f"[compute_transforms-lihao-mof] rotmats={rotmats.shape}\n")
 
-        return torch.cat([rotmats, transls[..., None]], dim=-1)
+    #     return torch.cat([rotmats, transls[..., None]], dim=-1)
     
     
     # [lihao-mof]：对换coef和base形状相乘
@@ -305,8 +417,14 @@ class MotionBases(nn.Module):
         # [lihao-mof]
         print(f"ts: {ts}")
         coefs = coefs[:,ts] # (G,B,K)
+
         transls = self.params["transls"]  # (K, 3)
         rots = self.params["rots"]   # (K, 6)
+        # rots,transls = self.forward()
+        # rots,transls = self.get_full_parameters() # 实质与v2一样
+        rots,transls = self.get_full_parameters_v2(rots,transls)
+        
+
         print(f"[compute_transforms-lihao-mof] coefs={coefs.shape}")
         print(f"0-[compute_transforms-lihao-mof] transls={transls.shape}")
         print(f"0-[compute_transforms-lihao-mof] rots={rots.shape}")

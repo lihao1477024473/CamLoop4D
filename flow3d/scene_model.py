@@ -175,6 +175,8 @@ class SceneModel(nn.Module):
             camera_poses,
             bg
         )
+    
+    
 
     def render(
         self,

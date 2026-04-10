@@ -112,6 +112,10 @@ def compute_coef(coef1,base1,base2):
     return coef2
 
 
+def check_bases_sizes(rots, transls):
+    # 示例函数，确保 rots 和 transls 尺寸匹配
+    return rots.shape[0] == transls.shape[0]
+
 # 六个基本运动基的 4x4 矩阵表示（在 se(3) 中）
 # 三个平移基
 # 沿x轴的平移
