@@ -46,6 +46,7 @@ class CameraPoses(nn.Module):
             }
         )
 
+    
     @staticmethod
     def init_from_state_dict(
         state_dict: dict[str, Tensor],
@@ -200,31 +201,6 @@ class GaussianParams(nn.Module):
             updated_params[name] = x_new
             self.params[name] = x_new
         return updated_params
-<<<<<<< Updated upstream
-    
-    def cull_params_v2(self, should_cull,type_point):# lihao-mo
-        """
-        cull gaussians
-        """
-        updated_params = {}
-        for name, x in self.params.items():
-            x_new = nn.Parameter(x[~should_cull])
-            # =================lihao-mof=================================
-            # indices = moflh.uniform_sample_points(x_new)
-            # indices = moflh.uniform_sample_points_v2(x_new,type_point=type_point)
-            indices = moflh.random_sample_indices(x_new,type_point=type_point)
-            print(f"name={name} | {x.shape=}")
-            if name in ["motion_coefs","means", "quats", "scales", "colors", "opacities"]:
-                # print(f"before:   x_new={x_new.shape}")
-                # x_new = moflh.uniform_sample_points(x_new)
-                x_new = x_new[indices]
-                # print(f"after:   x_new={x_new.shape}")
-            # =================lihao-mof=================================
-            updated_params[name] = x_new
-            self.params[name] = x_new
-        return updated_params,indices
-=======
->>>>>>> Stashed changes
 
     def reset_opacities(self, new_val):
         """
@@ -244,115 +220,12 @@ class MotionBases(nn.Module):
         # self.num_frames = moflh.NUM_FRAME # lihao-mof
         self.num_bases = rots.shape[0] 
         assert check_bases_sizes(rots, transls)
-<<<<<<< Updated upstream
-
-        # self.params = nn.ParameterDict(
-        #     {
-        #         # 方式1
-        #         # "rots": nn.Parameter(rots),
-        #         # "transls": nn.Parameter(transls),
-        #     }
-        # )
-        
-        # ================================================lihao-mof-add==========================
-        # self.params = nn.ParameterDict(
-        #     {
-        #         # 方式1
-        #         # "rots": nn.Parameter(rots),
-        #         # "transls": nn.Parameter(transls),
-        #         # 方式2：
-        #         # "rots": nn.Parameter(rots,requires_grad=False), # lihao-mof;不参与梯度计算
-        #         # "transls": nn.Parameter(transls,requires_grad=False),# lihao-mof
-        #         # 方式3
-        #         "rots": nn.Parameter(rots,requires_grad=True), # lihao-mof;不参与梯度计算
-        #         "transls": nn.Parameter(transls,requires_grad=True),# lihao-mof
-        #     }
-        # )
-
-        # 拆分索引
-        # 提取前6个
-        split_idx = 6
-
-        # # 提取前q*6个固定基
-        # quotient, remainder = divmod(self.num_bases, split_idx)
-        # split_idx = quotient * split_idx
-        
-        # if self.num_bases <= split_idx:
-        #     raise ValueError(f"num_bases ({self.num_bases}) must be greater than 6 to split.")
-        
-        # --- 处理 rots ---
-        rots_frozen = rots[:split_idx].clone() 
-        rots_trainable = rots[split_idx:].clone()
-        # --- 处理 transls ---
-        transls_frozen = transls[:split_idx].clone()
-        transls_trainable = transls[split_idx:].clone()
-
-        # 注册冻结部分为 buffer（不参与梯度计算，但随模型移动）
-        self.register_buffer("rots_frozen", rots_frozen)
-        self.register_buffer("transls_frozen", transls_frozen)
-        # # 可训练部分：作为 Parameter
-        # self.params = nn.ParameterDict({
-        #     "rots": nn.Parameter(rots_trainable, requires_grad=True),
-        #     "transls": nn.Parameter(transls_trainable, requires_grad=True),
-        # })
-        # 冻结 + 可训练：作为 Parameter
-        self.params = nn.ParameterDict({
-            "rots": nn.Parameter(rots_trainable, requires_grad=True),
-            "transls": nn.Parameter(transls_trainable, requires_grad=True),
-
-            # "rots_frozen": nn.Parameter(self.rots_frozen, requires_grad=False),
-            # "transls_frozen": nn.Parameter(self.transls_frozen, requires_grad=False),
-        })
-        # 保存拆分索引（用于 forward 拼接）
-        self.split_idx = split_idx
-
-        # ================================================lihao-mof-add==========================
-
-
-    # ================================================lihao-mof-add==========================
-    def forward(self):
-        """
-        返回完整的 rots 和 transls（冻结 + 可训练部分拼接）
-        """
-        full_rots = torch.cat([self.rots_frozen, self.params["rots"]], dim=0)
-        full_transls = torch.cat([self.transls_frozen, self.params["transls"]], dim=0)
-        return full_rots, full_transls
-    
-    def get_full_parameters(self):
-        """
-        返回完整的 rots 和 transls（冻结 + 可训练）
-        """
-        full_rots = torch.cat([self.rots_frozen, self.params["rots"]], dim=0)
-        full_transls = torch.cat([self.transls_frozen, self.params["transls"]], dim=0)
-        return full_rots, full_transls
-    
-    def get_full_parameters_v2(self,rots,transls):
-        """
-        返回完整的 rots 和 transls（冻结 + 可训练）
-        """
-        full_rots = torch.cat([self.rots_frozen, rots], dim=0)
-        full_transls = torch.cat([self.transls_frozen, transls], dim=0)
-        return full_rots, full_transls
-    
-    def get_trainable_params(self):
-        """
-        返回所有可训练参数，用于优化器
-        """
-        # return self.params.parameters()
-        return self.params
-
-    def get_num_trainable_bases(self):
-        return self.params["rots"].shape[0]
-    # ================================================lihao-mof-add==========================
-
-=======
         self.params = nn.ParameterDict(
             {
                 "rots": nn.Parameter(rots),
                 "transls": nn.Parameter(transls),
             }
         )
->>>>>>> Stashed changes
 
     @staticmethod
     def init_from_state_dict(state_dict, prefix="params."):
@@ -434,30 +307,6 @@ class MotionBases(nn.Module):
         coefs = coefs[:,ts] # (G,B,K)
         transls = self.params["transls"]  # (K, 3)
         rots = self.params["rots"]   # (K, 6)
-<<<<<<< Updated upstream
-        # rots,transls = self.forward()
-        # rots,transls = self.get_full_parameters() # 实质与v2一样
-        rots,transls = self.get_full_parameters_v2(rots,transls)
-
-        # # # -----------固定基推理250905-------
-        # 方式1
-        # 使用固定基
-        # coefs = coefs[...,:6]
-        # rots,transls = rots[:6,...],transls[:6,...]
-        # 使用可变基
-        # coefs = coefs[...,6:]
-        # rots,transls = rots[6:,...],transls[6:,...]
-
-        # 方式2
-        # 可变系数基置0
-        # coefs[...,6:] = 0
-        # # # -----------固定基推理-------
-        # # # -----------拉小可占比的系数250909-------
-        # coefs[...,6:] = 0.2*coefs[...,6:]
-        # # # -----------拉小可占比的系数250909-------
-
-=======
->>>>>>> Stashed changes
         print(f"[compute_transforms-lihao-mof] coefs={coefs.shape}")
         print(f"0-[compute_transforms-lihao-mof] transls={transls.shape}")
         print(f"0-[compute_transforms-lihao-mof] rots={rots.shape}")

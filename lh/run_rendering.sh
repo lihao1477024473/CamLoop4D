@@ -2,11 +2,9 @@
 
 cd ..
 
-# # custom;paper-windmill,backpack
-# model="som-change"
-# out="lh50"
+# # custom;paper-windmill
 # python run_rendering.py \
-#     --work-dir /root/autodl-tmp/${model}/${out}/backpack/ \
+#     --work-dir /root/autodl-tmp/shape-of-motion/lh/paper-windmill/ \
 #     --port 8091
 
 # # custom
@@ -26,14 +24,8 @@ cd ..
 # retriever1,
 # astronaut_00005_maskfg_select250625_change_sample10_mofBase12_repeat_useSomCoef_numBases25
 # tiger1_00007_maskfg_select250625_change_sample10_mofBase12_repeat_useSomCoef_numBases25
-<<<<<<< Updated upstream
-model="som-change"
-version="any4dv350"
-name="astronaut_00005_maskAll_select250625_${version}-b18" # astronaut_00005,tiger2_00018
-=======
 name="tiger1_00007_maskfg_select250625_change_sample10_mofBase12_repeat_useSomCoef_numBases25" # bear_maskAll;bear_maskAll_2dgs;retriever1_maskAll;bear_maskAllOneCls_py
 
->>>>>>> Stashed changes
 python run_rendering.py \
     --work-dir /root/autodl-tmp/som-change/lh/${name}/ \
     --port 8091
