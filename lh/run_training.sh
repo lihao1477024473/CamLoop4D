@@ -1,6 +1,6 @@
 cd ..
 
-dataName="spin" # paper-windmill,backpack;spin
+dataName="paper-windmill" # paper-windmill,backpack;spin
 # python -m torch.distributed.run --nproc_per_node=2 run_training.py \
 python run_training.py \
   --work-dir /root/autodl-tmp/som-change/lh/${dataName} \

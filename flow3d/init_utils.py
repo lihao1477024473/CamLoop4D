@@ -461,8 +461,7 @@ def init_motion_params_with_procrustes(
     # [2] 尝试：或者将som的系数直接给他
     # print(f"motion_coefs1[2]:{motion_coefs1.shape}")
     # motion_coefs = motion_coefs.reshape(1, 1, num_bases).repeat(num_gaussians, num_frames, 1)
-    # motion_coefs = motion_coefs.reshape(num_gaussians, 1, num_bases).repeat(1, num_frames, 1)
-    motion_coefs = motion_coefs.reshape(motion_coefs.shape[0], 1, num_bases).repeat(1, num_frames, 1)
+    motion_coefs = motion_coefs.reshape(num_gaussians, 1, num_bases).repeat(1, num_frames, 1)
     print(f"motion_coefs[repeat]:{motion_coefs.shape}")
     # exit()
 
@@ -494,24 +493,14 @@ def run_initial_optim(
     :param motion_coefs: [num_bases, num_frames]
     :param means: [num_gaussians, 3]
     """
-    # optimizer = torch.optim.Adam(
-    #     [
-    #         {"params": bases.params["rots"], "lr": 1e-2},
-    #         {"params": bases.params["transls"], "lr": 3e-2},
-    #         {"params": fg.params["motion_coefs"], "lr": 1e-2},
-    #         {"params": fg.params["means"], "lr": 1e-3},
-    #     ],
-    # )
-    # =====================lihao-mof==========================
     optimizer = torch.optim.Adam(
         [
-            # {"params": bases.params["rots"], "lr": 1e-2},
-            # {"params": bases.params["transls"], "lr": 3e-2},
+            {"params": bases.params["rots"], "lr": 1e-2},
+            {"params": bases.params["transls"], "lr": 3e-2},
             {"params": fg.params["motion_coefs"], "lr": 1e-2},
             {"params": fg.params["means"], "lr": 1e-3},
         ],
     )
-    # =====================lihao-mof==========================
     scheduler = torch.optim.lr_scheduler.ExponentialLR(
         optimizer, gamma=0.1 ** (1 / num_iters)
     )

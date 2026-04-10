@@ -69,10 +69,10 @@ class TrainConfig:
     num_fg: int = 40_000 # 40_000
     # num_bg: int = 100_000
     num_bg: int = 40_000 # lihao-mof，60_000,
-    # num_motion_bases: int = 10
-    num_motion_bases: int = 6 # lihao,3,6,10,15,20,25,30
-    # num_epochs: int = 500 
-    num_epochs: int = 700 # lihao
+    num_motion_bases: int = 10
+    # num_motion_bases: int = 25 # lihao,3,6,10,15,20,25,30
+    num_epochs: int = 500 
+    # num_epochs: int = 1000 # lihao
     port: int | None = None
     vis_debug: bool = False 
     batch_size: int = 8

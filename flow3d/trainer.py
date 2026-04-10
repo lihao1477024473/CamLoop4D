@@ -50,8 +50,8 @@ class Trainer:
         self.validate_viewer_assets_every = validate_viewer_assets_every
 
         self.model = model
-        self.num_frames = model.num_frames
-        # self.num_frames = getattr(model, "module", model).num_frames # lihao-mof;# 正确访问被 DataParallel 包装的模型的属性
+        # self.num_frames = model.num_frames
+        self.num_frames = getattr(model, "module", model).num_frames # lihao-mof;# 正确访问被 DataParallel 包装的模型的属性
 
         self.lr_cfg = lr_cfg
         self.losses_cfg = losses_cfg
@@ -786,20 +786,11 @@ class Trainer:
                 fnc = functools.partial(_exponential_decay, lr_final=0.1 * lr)
             else:
                 fnc = lambda _, **__: 1.0
-            
-            # ===========================lihao-mof========================frozen
-            if name in ["motion_bases.params.rots","motion_bases.params.transls"]:
-                print("*******************************************no optimize: {name} |  ['motion_bases.params.rots','motion_bases.params.transls']")
-                continue
-            # ===========================lihao-mof========================frozen
 
             optimizers[name] = optim
             schedulers[name] = torch.optim.lr_scheduler.LambdaLR(
                 optim, functools.partial(fnc, lr_init=lr)
             )
-        print(f"[lihao-mof]{optimizers.keys()=}")
-        print(f"[lihao-mof]{schedulers.keys()=}")
-        # exit(-1)
         return optimizers, schedulers
 
 

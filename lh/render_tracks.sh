@@ -2,7 +2,7 @@ cd ..
 
 # no-skip_load_imgs: skip_load_imgs=False;no-use_2dgs: use_2dgs=False
 # iphone,backpack,paper-windmill；spin
-dataName="paper-windmill"
+dataName="spin"
 python render_tracks.py \
     --work_dir /root/autodl-tmp/som-change/lh/${dataName} \
     --no-use_2dgs \
