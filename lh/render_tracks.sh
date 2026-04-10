@@ -3,7 +3,7 @@ cd ..
 # no-skip_load_imgs: skip_load_imgs=False;no-use_2dgs: use_2dgs=False
 # iphone,backpack,paper-windmill；spin
 dataName="backpack"
-out="lh30"
+out="lh50"
 python render_tracks.py \
     --work_dir /root/autodl-tmp/som-change/${out}/${dataName} \
     --no-use_2dgs \
@@ -44,13 +44,14 @@ python render_tracks.py \
 # vasedeck_lemniscate
 # blue-car_lemniscate,blue-car_orbit
 # dataType="ac3d2som" # seva2som,ac3d2som,maskAll 
-# nameFolder="maskfg_select250625" 
-# name="tiger1_00007"
-# nameTrain="${name}_${nameFolder}_change_sample10_mofBase12_repeat_useSomCoef_numBases25"
+# nameFolder="maskfg_select250625" # maskfg_select250625,maskAll_select250625
+# out="lh"
+# name="tiger2_00018" # tiger2_00018,astronaut_00005
+# nameTrain="${name}_${nameFolder}_any4dv350-b18"
 # # nameTrain="${name}_${nameFolder}"
 # dirData="${dataType}/${nameFolder}"
 # python render_tracks.py \
-#     --work_dir /root/autodl-tmp/som-change/lh/${nameTrain} \
+#     --work_dir /root/autodl-tmp/som-change/${out}/${nameTrain} \
 #     --no-use_2dgs \
 #     data:custom --data.data_dir /root/autodl-tmp/data/${dirData} --data.camera-type droid_recon --data.seq_name ${name} \
 #     trajectory:wander\

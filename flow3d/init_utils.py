@@ -568,7 +568,7 @@ def run_initial_optim(
     pbar = tqdm(range(0, num_iters))
     for i in pbar:
         coefs = fg.get_coefs()
-        print(f"---------------------------ts: {ts}")
+        print(f"---------------------------ts: {ts} coefs={coefs.shape}")
         # exit(-1)
         transfms = bases.compute_transforms(ts, coefs)
         positions = torch.einsum(
@@ -617,10 +617,27 @@ def run_initial_optim(
 
             loss += loss_depth_in_range * w_smooth_func(i, 0.05, 0.5, 400)
 
-        motion_coef_sparse_loss = 1 - (coefs**2).sum(dim=-1).mean()
-        # loss += motion_coef_sparse_loss * 0.01
+        # motion_coef_sparse_loss = 1 - (coefs**2).sum(dim=-1).mean() # 原始
+        # loss += motion_coef_sparse_loss * 0.01 # 原始
+        # ==========lihao-mof====================================
+        # 方式1
         # loss += motion_coef_sparse_loss * 1.0 # [lihao-mof]***有效;2506
-        loss += motion_coef_sparse_loss * 0.5 # [lihao-mof];250819
+        # loss += motion_coef_sparse_loss * 0.8 # [lihao-mof];250819;0.5
+
+        # 方式2：250831
+        print(f"{coefs[...,:6].shape=} {coefs[...,6:].shape=}")
+        alpha = 0.8
+        # # 算法1
+        # coefs = torch.cat([alpha*coefs[...,:6], (1-alpha)*coefs[...,6:]], dim=-1) # 固定+可变
+        # motion_coef_sparse_loss = 1 - (coefs**2).sum(dim=-1).mean()
+        # 算法2
+        coef_loss_frozenBase = 1 - (coefs[...,:6]**2).sum(dim=-1).mean()
+        coef_loss_trainable = 1 - (coefs[...,6:]**2).sum(dim=-1).mean()
+        motion_coef_sparse_loss = alpha * coef_loss_frozenBase + (1-alpha)*coef_loss_trainable
+        # exit(-1)
+        loss += motion_coef_sparse_loss * 1 # [lihao-mof];250831,1
+        # ==========lihao-mof====================================
+
 
 
         # motion basis should be smooth.

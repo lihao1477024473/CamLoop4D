@@ -1,7 +1,7 @@
 cd ..
 
 dataName="backpack" # paper-windmill,backpack;spin
-out="lh30"
+out="lh50"
 # python -m torch.distributed.run --nproc_per_node=2 run_training.py \
 python run_training.py \
   --work-dir /root/autodl-tmp/som-change/${out}/${dataName} \
