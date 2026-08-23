@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Data & outputs
+data/
+results/
+output/
+*.npy
+*.npz
+*.mp4
+
+# Large assets in vendored repos (keep the source code, drop demo assets)
+vgen/stable-virtual-camera-main/assets/
+vgen/ac3d-main/assets/
+vgen/ac3d-main/data/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
