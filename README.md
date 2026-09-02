@@ -1,11 +1,9 @@
 # CamLoop4D: Controllable 4D Scene Generation by Closing the Camera Loop between Generation and Reconstruction
 **[Pacific Graphics 2026 — Computer Graphics Forum, Volume 45, Number 7]**
 
-[Hao Li](https://github.com/lihao1477024473)<sup>1</sup>, [Junhao Chen](https://github.com/junhao-c24)<sup>2†</sup>
+[Hao Li](https://github.com/lihao1477024473)<sup>1</sup>, [Junhao Chen](https://github.com/junhao-c24)<sup>2</sup>
 
 <sup>1</sup>Independent Researcher, Chengdu, China &nbsp;  <sup>2</sup>Tsinghua University, Beijing, China
-
-†Corresponding author: junhao-c24@mails.tsinghua.edu.cn
 
 ## News
 - **Pacific Graphics 2026** (Computer Graphics Forum, Vol. 45, No. 7) — camera-ready paper: [📥 **CamLoop4D.pdf**](https://cdn.jsdelivr.net/gh/lihao1477024473/CamLoop4D@main/paper/CamLoop4D.pdf) (main paper + supplementary, direct download). [🔗 GitHub page](https://github.com/lihao1477024473/CamLoop4D/blob/main/paper/CamLoop4D.pdf)
