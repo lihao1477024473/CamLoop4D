@@ -8,7 +8,7 @@
 †Corresponding author: junhao-c24@mails.tsinghua.edu.cn
 
 ## News
-- **Pacific Graphics 2026** (Computer Graphics Forum, Vol. 45, No. 7) — camera-ready paper: [📥 **CamLoop4D.pdf**](paper/CamLoop4D.pdf) (main paper + supplementary).
+- **Pacific Graphics 2026** (Computer Graphics Forum, Vol. 45, No. 7) — camera-ready paper: [📥 **CamLoop4D.pdf**](https://cdn.jsdelivr.net/gh/lihao1477024473/CamLoop4D@main/paper/CamLoop4D.pdf) (main paper + supplementary, direct download). [🔗 GitHub page](https://github.com/lihao1477024473/CamLoop4D/blob/main/paper/CamLoop4D.pdf)
 
 ## Method Overview
 
