@@ -1,20 +1,20 @@
-﻿# CamLoop4D: Controllable 4D Scene Generation by Closing the Camera Loop between Generation and Reconstruction
-**[Pacific Graphics 2026 鈥?Computer Graphics Forum, Volume 45, Number 7]**
+# CamLoop4D: Controllable 4D Scene Generation by Closing the Camera Loop between Generation and Reconstruction
+**[Pacific Graphics 2026 — Computer Graphics Forum, Volume 45, Number 7]**
 
-[Hao Li](https://github.com/lihao1477024473)<sup>1</sup>, [Junhao Chen](https://github.com/junhao-c24)<sup>2鈥?/sup>
+[Hao Li](https://github.com/lihao1477024473)<sup>1</sup>, [Junhao Chen](https://github.com/junhao-c24)<sup>2†</sup>
 
 <sup>1</sup>Independent Researcher, Chengdu, China &nbsp;  <sup>2</sup>Tsinghua University, Beijing, China
 
-鈥燙orresponding author: junhao-c24@mails.tsinghua.edu.cn
+†Corresponding author: junhao-c24@mails.tsinghua.edu.cn
 
 ## News
-- **Pacific Graphics 2026** (Computer Graphics Forum, Vol. 45, No. 7) 鈥?camera-ready revision: [`paper/paper1170_revised.pdf`](paper/paper1170_revised.pdf).
+- **Pacific Graphics 2026** (Computer Graphics Forum, Vol. 45, No. 7) — camera-ready paper: [📥 **CamLoop4D.pdf**](paper/CamLoop4D.pdf) (main paper + supplementary).
 
 ## Method Overview
 
-**Camera-controlled video generation (搂3.1).** Camera trajectories are encoded as **Pl眉cker embeddings** $p_{u,v} = [o \times d_{u,v};\ d_{u,v}] \in \mathbb{R}^6$ (with ray direction $d_{u,v} = \mathrm{normalize}(RK^{-1}[u,v,1]^\top)$) and injected into a frozen video diffusion model (AC3D / CogVideoX; generator-agnostic). The trajectory tensor is **directly shared** with reconstruction.
+**Camera-controlled video generation (§3.1).** Camera trajectories are encoded as **Plücker embeddings** $p_{u,v} = [o \times d_{u,v};\ d_{u,v}] \in \mathbb{R}^6$ (with ray direction $d_{u,v} = \mathrm{normalize}(RK^{-1}[u,v,1]^\top)$) and injected into a frozen video diffusion model (AC3D / CogVideoX; generator-agnostic). The trajectory tensor is **directly shared** with reconstruction.
 
-**4D reconstruction with hybrid motion bases (搂3.2).** Dynamic scenes are persistent 3D Gaussians whose motion is a linear combination of globally shared bases:
+**4D reconstruction with hybrid motion bases (§3.2).** Dynamic scenes are persistent 3D Gaussians whose motion is a linear combination of globally shared bases:
 
 $$T_{0:t} = \exp\!\Big(\sum_{i=1}^{6} \alpha^{(i)}_t G^{(i)}_{fixed} + \sum_{j=1}^{B-6} \beta^{(j)}_t G^{(j)}_{trainable}\Big)$$
 
@@ -22,7 +22,7 @@ $$T_{0:t} = \exp\!\Big(\sum_{i=1}^{6} \alpha^{(i)}_t G^{(i)}_{fixed} + \sum_{j=1
 - **Trainable bases** act as a scene-adapted low-rank prior that conditions/regularises optimisation (removing them collapses PSNR by ~5 dB).
 - **Motion-coefficient loss** $L_c$ with asymmetric weight $\lambda=0.8$ pushes the optimiser to prefer the rigid generators first.
 
-**Shared trajectory interface (搂3.2.3).** Both stages share intrinsics $K$, the world frame at the canonical frame, and the metric scale 鈥?removing pose re-estimation (+0.88 dB over DUSt3R poses).
+**Shared trajectory interface (§3.2.3).** Both stages share intrinsics $K$, the world frame at the canonical frame, and the metric scale — removing pose re-estimation (+0.88 dB over DUSt3R poses).
 
 ## 1. Video Generation
 
@@ -36,9 +36,9 @@ Generate camera-controlled videos from **text prompts / images** together with *
 ### Usage
 
 ```bash
-bash run_scripts/vgen.sh ac3d-2b    # AC3D: CogVideoX-2b (鈮?8GB VRAM)
-bash run_scripts/vgen.sh ac3d-5b    # AC3D: CogVideoX-5b (鈮?0GB VRAM)
-bash run_scripts/vgen.sh seva       # SEVA: image 鈫?preset trajectory video
+bash run_scripts/vgen.sh ac3d-2b    # AC3D: CogVideoX-2b (≈48GB VRAM)
+bash run_scripts/vgen.sh ac3d-5b    # AC3D: CogVideoX-5b (≈80GB VRAM)
+bash run_scripts/vgen.sh seva       # SEVA: image → preset trajectory video
 bash run_scripts/vgen.sh all        # run all of the above sequentially
 ```
 
@@ -46,12 +46,12 @@ bash run_scripts/vgen.sh all        # run all of the above sequentially
 
 Edit the top of `run_scripts/vgen.sh` to adjust:
 
-- `DATA_ROOT` / `OUT_ROOT` 鈥?data and output root paths (defaults to `/root/autodl-tmp/...`)
-- `AC3D_DATASET_DIR` / `AC3D_ANNOTATION` 鈥?RealEstate10K dataset layout (`annotations/ pose_files/ video_clips/`)
-- `AC3D_CKPT_2B` / `AC3D_CKPT_5B` 鈥?paths to trained ControlNet checkpoints
-- `SEVA_IMG_DIR` 鈥?directory of input images (`scene_1.png`, ...)
-- `SEVA_TRAJ` 鈥?SEVA preset trajectory (`orbit` / `spiral` / `lemniscate` / `zoom-*` / `dolly zoom-*` / `move-*` / `roll`)
-- `PROMPT` 鈥?text prompt used by AC3D
+- `DATA_ROOT` / `OUT_ROOT` — data and output root paths (defaults to `/root/autodl-tmp/...`)
+- `AC3D_DATASET_DIR` / `AC3D_ANNOTATION` — RealEstate10K dataset layout (`annotations/ pose_files/ video_clips/`)
+- `AC3D_CKPT_2B` / `AC3D_CKPT_5B` — paths to trained ControlNet checkpoints
+- `SEVA_IMG_DIR` — directory of input images (`scene_1.png`, ...)
+- `SEVA_TRAJ` — SEVA preset trajectory (`orbit` / `spiral` / `lemniscate` / `zoom-*` / `dolly zoom-*` / `move-*` / `roll`)
+- `PROMPT` — text prompt used by AC3D
 
 ### Dependencies
 
@@ -68,7 +68,7 @@ huggingface-cli login
 
 ## 2. 4D Reconstruction
 
-> Reconstruct a dynamic 4D scene from a single video (or from generated frames). This is the SoM-based reconstruction module with **hybrid motion bases** and the **shared Pl眉cker trajectory interface**.
+> Reconstruct a dynamic 4D scene from a single video (or from generated frames). This is the SoM-based reconstruction module with **hybrid motion bases** and the **shared Plücker trajectory interface**.
 
 ### Data
 Preprocessed nvidia dataset and custom dataset can be found [here](https://drive.google.com/drive/folders/1xzn-Mu_jyr-JTsrERRU-Mh2hQ-NWdfv8). We used [MegaSaM](https://mega-sam.github.io/) to get cameras and depths for custom dataset.
@@ -120,7 +120,7 @@ python run_training.py \
 
 ### Usage
 
-For the generation branch, depth maps (Depth Anything) and 2D tracks (TAPIR) are extracted off-the-shelf from the generated frames; the camera parameters are **not re-estimated** 鈥?they come directly from the shared Pl眉cker trajectory. For the reconstruction branch on captured video, we depend on the third-party libraries in `preproc` to generate depth maps, object masks, camera estimates, and 2D tracks.
+For the generation branch, depth maps (Depth Anything) and 2D tracks (TAPIR) are extracted off-the-shelf from the generated frames; the camera parameters are **not re-estimated** — they come directly from the shared Plücker trajectory. For the reconstruction branch on captured video, we depend on the third-party libraries in `preproc` to generate depth maps, object masks, camera estimates, and 2D tracks.
 Please follow the guide in the [preprocessing README](./preproc/README.md).
 
 ### Evaluation on iPhone Dataset
@@ -144,37 +144,37 @@ PYTHONPATH='.' python scripts/evaluate_iphone.py \
 
 ### Optimization (Section 3.3)
 - Adam, lr = 1e-4; 1,000 iterations of initial fitting + 600 epochs of joint optimisation.
-- $B = 15$ motion bases (**6 fixed + 9 trainable**), 50,000 initial Gaussians with adaptive density control [KKLD23], 0.5脳 Gaussian downsampling.
+- $B = 15$ motion bases (**6 fixed + 9 trainable**), 50,000 initial Gaussians with adaptive density control [KKLD23], 0.5× Gaussian downsampling.
 - Overall loss: $L = L_{rgb} + 0.5\,L_{depth} + 0.2\,L_{track} + 0.01\,L_{c}$.
 
 ### Results
 | Task | Result |
 | :--- | :--- |
-| **iPhone matched-input** (primary, controlled) | **16.41 dB / 0.621 / 0.440** 鈥?+0.52 dB over SoM, +0.19 dB over MoSca (wins 11/14 scenes) |
-| **NVIDIA Dynamic Scenes** (second benchmark) | 21.94 dB 鈥?+0.20 dB over MoSca, +0.70 dB over SoM (ordering replicates) |
+| **iPhone matched-input** (primary, controlled) | **16.41 dB / 0.621 / 0.440** — +0.52 dB over SoM, +0.19 dB over MoSca (wins 11/14 scenes) |
+| **NVIDIA Dynamic Scenes** (second benchmark) | 21.94 dB — +0.20 dB over MoSca, +0.70 dB over SoM (ordering replicates) |
 | **System-level (deployment)** | 16.55 dB from generated video, on par with real-video baselines |
-| **Geometric self-consistency** (generated scenes) | Camera-following ATE **0.024 m** vs. Free4D cascade 0.112 m (~5脳 lower) |
-| **User study** | 38 participants / 570 judgements; wins over 6 of 7 baselines (Holm鈥揃onferroni significant) |
+| **Geometric self-consistency** (generated scenes) | Camera-following ATE **0.024 m** vs. Free4D cascade 0.112 m (~5× lower) |
+| **User study** | 38 participants / 570 judgements; wins over 6 of 7 baselines (Holm–Bonferroni significant) |
 | **Ablation** | Hybrid bases +0.64 dB (vs. fully-learnable); fixed-only collapses to 11.52 dB; shared camera +0.88 dB; motion-coeff. loss +0.62 dB |
 
 ## 3. Shared Trajectory Interface
 
-> How the camera trajectory flows from the **generation** stage (Section 1) into the **reconstruction** stage (Section 2) without re-estimation. Both stages consume the same trajectory tensor, encoded as Pl眉cker embeddings. A ready-to-use tool is provided: `sharedCamTrajectory.py` (wrapped by `run_scripts/sharedCamTrajectory.sh`).
+> How the camera trajectory flows from the **generation** stage (Section 1) into the **reconstruction** stage (Section 2) without re-estimation. Both stages consume the same trajectory tensor, encoded as Plücker embeddings. A ready-to-use tool is provided: `sharedCamTrajectory.py` (wrapped by `run_scripts/sharedCamTrajectory.sh`).
 
 ### Pipeline
 
 ```
 1. Video Generation (Section 1)
-   鈹斺攢 run_scripts/vgen.sh  鈫? generated frames + camera trajectory (specified poses)
-                         鈹?
-                         鈻? (same trajectory, saved on disk)
+   └─ run_scripts/vgen.sh  →  generated frames + camera trajectory (specified poses)
+                         │
+                         ▼  (same trajectory, saved on disk)
 2. Save trajectory as the reconstructor's camera file
-   鈹斺攢 sharedCamTrajectory.py  鈫? <out_dir>/droid_recon/<seq_name>.npy
+   └─ sharedCamTrajectory.py  →  <out_dir>/droid_recon/<seq_name>.npy
                                  <out_dir>/camera/<seq>_<i>.json   (iPhone style)
-                         鈹?
-                         鈻? (loaded directly, NO pose re-estimation)
+                         │
+                         ▼  (loaded directly, NO pose re-estimation)
 3. 4D Reconstruction (Section 2)
-   鈹斺攢 python run_training.py data:custom \
+   └─ python run_training.py data:custom \
         --data.data-dir <out_dir> \
         --data.camera-type droid_recon \
         --data.seq_name <seq_name>
@@ -185,7 +185,7 @@ PYTHONPATH='.' python scripts/evaluate_iphone.py \
 `sharedCamTrajectory.py` (requires a Python env with `numpy`, e.g. `miniconda3`):
 
 ```bash
-# 1) Generate a camera trajectory (+ Pl眉cker embedding) and save the shared file
+# 1) Generate a camera trajectory (+ Plücker embedding) and save the shared file
 python sharedCamTrajectory.py plucker-trajectory \
     --traj-type spiral --num-frames 80 \
     --fx 700 --fy 700 --cx 360 --cy 240 --height 480 --width 720 \
@@ -218,7 +218,7 @@ bash run_scripts/sharedCamTrajectory.sh realestate10k-to-iphone
 ### Notes
 - Camera sources: `droid_recon` (loads `droid_recon/<seq_name>.npy`) or `megasam` (loads `<seq_name>.npz`).
 - `realestate10k-to-iphone` writes both the iPhone-style `camera/*.json` (for `iPhoneDataset camera_type="original"`) and the `droid_recon/<seq>.npy` shared file.
-- The interface removes the *pose-estimation stage* (residual generator deviation: ATE 鈮?0.021 m, angular 1.3掳), yielding **+0.88 dB PSNR** over DUSt3R-estimated poses.
+- The interface removes the *pose-estimation stage* (residual generator deviation: ATE ≈ 0.021 m, angular 1.3°), yielding **+0.88 dB PSNR** over DUSt3R-estimated poses.
 
 ## Citation
 If you find this project useful for your research, please cite:
