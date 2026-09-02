@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CamLoop4D - Supplementary Material</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0e1117; --surface: #161b22; --border: #30363d;
+      --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+      --radius: 12px; --radius-sm: 8px; --max-w: 1100px;
+    }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6; font-size: 16px;
+    }
+    video { display: block; max-width: 100%; height: auto; background: #000; }
+    .page-shell { min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* header */
+    .site-header {
+      position: sticky; top: 0; z-index: 100; padding: 14px 24px;
+      background: rgba(14,17,23,.88); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .site-title { font-size: 16px; font-weight: 600; color: var(--muted); text-align: center; }
+
+    /* hero */
+    .hero { max-width: var(--max-w); margin: 0 auto; padding: 56px 24px 32px; text-align: center; }
+    .paper-title {
+      font-size: 32px; font-weight: 800; line-height: 1.25;
+      background: linear-gradient(135deg, #58a6ff, #a371f7);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 12px;
+    }
+    .paper-sub { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+    .hero-desc { font-size: 15px; color: var(--muted); max-width: 700px; margin: 0 auto 22px; }
+    .hero-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 18px; border-radius: 999px; font-size: 14px; font-weight: 600;
+      text-decoration: none; border: 1px solid var(--border);
+      color: var(--text); background: var(--surface); transition: border-color .15s;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn-primary { background: rgba(88,166,255,.14); color: var(--accent); border-color: rgba(88,166,255,.4); }
+
+    /* section heading */
+    .section-head { max-width: var(--max-w); margin: 0 auto; padding: 8px 24px 20px; }
+    .section-head h2 { font-size: 20px; font-weight: 700; }
+    .section-head p { font-size: 14px; color: var(--muted); margin-top: 4px; }
+
+    /* demos */
+    .demos { max-width: var(--max-w); margin: 0 auto; padding: 0 24px 64px; display: grid; gap: 28px; }
+    .demo-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
+    }
+    .demo-label { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .demo-index { font-size: 13px; font-weight: 700; color: var(--accent); }
+    .demo-label h3 { font-size: 17px; font-weight: 600; }
+    .demo-tag {
+      margin-left: auto; font-size: 12px; font-weight: 600;
+      padding: 3px 10px; border-radius: 999px;
+      background: rgba(88,166,255,.12); color: var(--accent); white-space: nowrap;
+    }
+    .video-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .media-panel {
+      border-radius: var(--radius-sm); overflow: hidden;
+      background: #0d1117; border: 1px solid var(--border);
+    }
+    .media-head {
+      padding: 7px 12px; font-size: 12px; font-weight: 600;
+      color: var(--muted); border-bottom: 1px solid var(--border);
+    }
+    .media-panel video { width: 100%; display: block; }
+
+    /* footer */
+    .site-footer {
+      margin-top: auto; padding: 20px 24px; text-align: center;
+      font-size: 13px; color: var(--muted); border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 640px) {
+      .paper-title { font-size: 22px; }
+      .video-pair { grid-template-columns: 1fr; }
+    }
+
+    /* metric tables */
+    .tbl-wrap { overflow-x:auto; margin:0 0 10px; border:1px solid var(--border); border-radius:var(--radius-sm); }
+    .metric-tbl { border-collapse:collapse; width:100%; font-size:12.5px; font-variant-numeric:tabular-nums; }
+    .metric-tbl th, .metric-tbl td { padding:5px 8px; text-align:center; border-bottom:1px solid var(--border); white-space:nowrap; }
+    .metric-tbl thead th { color:var(--muted); font-weight:600; background:#0d1117; }
+    .metric-tbl td.scene { text-align:left; color:var(--text); }
+    .metric-tbl td.best { color:var(--accent); font-weight:700; }
+    .metric-tbl tr.avg td { border-top:2px solid var(--border); font-weight:600; }
+    .tbl-note { font-size:13px; color:var(--muted); margin:0 0 22px; }
+    .best-key { color:var(--accent); font-weight:700; }
+    .tbl-sub { font-size:15px; font-weight:600; margin:6px 0 10px; }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <h1 class="site-title">CamLoop4D: Supplementary Material</h1>
+    </header>
+
+    <main>
+      <section class="hero">
+        <h2 class="paper-title">
+          CamLoop4D: Controllable 4D Scene Generation by Closing the
+          Camera Loop between Generation and Reconstruction
+        </h2>
+        <p class="paper-sub">Supplementary Material</p>
+<p class="paper-sub" style="margin-top:-6px">H. Li<sup>1</sup>, J. Chen<sup>2</sup> &middot; <sup>1</sup>Independent Researcher &middot; <sup>2</sup>Tsinghua University &middot; Pacific Graphics 2026 (CGF Journal Track)</p>
+        <p class="hero-desc">
+          CamLoop4D couples a camera-conditioned video diffusion model with a 4D Gaussian
+          reconstructor through one shared Pl&uuml;cker trajectory tensor, removing the fragile
+          pose re-estimation step of cascaded pipelines. Each case below shows the
+          camera-controlled generated video (left) alongside the reconstructed 4D Gaussian
+          rendering (right) produced under the same shared trajectory, on a single RTX&nbsp;3090.
+        </p>
+        <div class="hero-links">
+          <a class="btn btn-primary" href="paper1170_CRC_supp.pdf" target="_blank" rel="noopener">&#128196; Appendix PDF</a>
+          <a class="btn" href="#demos">&#9654; Video Results</a>
+          <a class="btn" href="#logs">&#128202; Per-Scene Metrics</a>
+        </div>
+      </section>
+
+      <div class="section-head" id="demos">
+        <h2>Generation &rarr; 4D Reconstruction under Shared Trajectories</h2>
+        <p>Videos autoplay and loop. The right panel is a free-viewpoint rendering of the persistent
+           3D Gaussian scene reconstructed from the left video, with no pose re-estimation in between.</p>
+      </div>
+
+      <section class="demos">
+        <article class="demo-card">
+          <div class="demo-label">
+            <span class="demo-index">01</span>
+            <h3>Flower Bouquet</h3>
+            <span class="demo-tag">Still Life</span>
+          </div>
+          <div class="video-pair">
+            <figure class="media-panel">
+              <div class="media-head"><span>Generated Video</span></div>
+              <video muted loop playsinline preload="auto">
+                <source src="video/case1-gen.mp4" type="video/mp4">
+              </video>
+            </figure>
+            <figure class="media-panel">
+              <div class="media-head"><span>4D Reconstruction (Ours)</span></div>
+              <video muted loop playsinline preload="auto">
+                <source src="video/case1-recon.mp4" type="video/mp4">
+              </video>
+            </figure>
+          </div>
+        </article>
+
+        <article class="demo-card">
+          <div class="demo-label">
+            <span class="demo-index">02</span>
+            <h3>Baby Dragon</h3>
+            <span class="demo-tag">Fantasy</span>
+          </div>
+          <div class="video-pair">
+            <figure class="media-panel">
+              <div class="media-head"><span>Generated Video</span></div>
+              <video muted loop playsinline preload="auto">
+                <source src="video/case2-gen.mp4" type="video/mp4">
+              </video>
+            </figure>
+            <figure class="media-panel">
+              <div class="media-head"><span>4D Reconstruction (Ours)</span></div>
+              <video muted loop playsinline preload="auto">
+                <source src="video/case2-recon.mp4" type="video/mp4">
+              </video>
+            </figure>
+          </div>
+        </article>
+
+        <article class="demo-card">
+          <div class="demo-label">
+            <span class="demo-index">03</span>
+            <h3>Walking Tiger</h3>
+            <span class="demo-tag">Animal</span>
+          </div>
+          <div class="video-pair">
+            <figure class="media-panel">
+              <div class="media-head"><span>Generated Video</span></div>
+              <video muted loop playsinline preload="auto">
+                <source src="video/case3-gen.mp4" type="video/mp4">
+              </video>
+            </figure>
+            <figure class="media-panel">
+              <div class="media-head"><span>4D Reconstruction (Ours)</span></div>
+              <video muted loop playsinline preload="auto">
+                <source src="video/case3-recon.mp4" type="video/mp4">
+              </video>
+            </figure>
+          </div>
+        </article>
+
+        <article class="demo-card">
+          <div class="demo-label">
+            <span class="demo-index">04</span>
+            <h3>Moonwalk Astronaut</h3>
+            <span class="demo-tag">Sci-Fi</span>
+          </div>
+          <div class="video-pair">
+            <figure class="media-panel">
+              <div class="media-head"><span>Generated Video</span></div>
+              <video muted loop playsinline preload="auto">
+                <source src="video/case4-gen.mp4" type="video/mp4">
+              </video>
+            </figure>
+            <figure class="media-panel">
+              <div class="media-head"><span>4D Reconstruction (Ours)</span></div>
+              <video muted loop playsinline preload="auto">
+                <source src="video/case4-recon.mp4" type="video/mp4">
+              </video>
+            </figure>
+          </div>
+        </article>
+
+        <article class="demo-card">
+          <div class="demo-label">
+            <span class="demo-index">05</span>
+            <h3>Country Road</h3>
+            <span class="demo-tag">Driving</span>
+          </div>
+          <div class="video-pair">
+            <figure class="media-panel">
+              <div class="media-head"><span>Generated Video</span></div>
+              <video muted loop playsinline preload="auto">
+                <source src="video/case5-gen.mp4" type="video/mp4">
+              </video>
+            </figure>
+            <figure class="media-panel">
+              <div class="media-head"><span>4D Reconstruction (Ours)</span></div>
+              <video muted loop playsinline preload="auto">
+                <source src="video/case5-recon.mp4" type="video/mp4">
+              </video>
+            </figure>
+          </div>
+        </article>
+
+        <article class="demo-card">
+          <div class="demo-label">
+            <span class="demo-index">06</span>
+            <h3>Mars Rover</h3>
+            <span class="demo-tag">Sci-Fi</span>
+          </div>
+          <div class="video-pair">
+            <figure class="media-panel">
+              <div class="media-head"><span>Generated Video</span></div>
+              <video muted loop playsinline preload="auto">
+                <source src="video/case6-gen.mp4" type="video/mp4">
+              </video>
+            </figure>
+            <figure class="media-panel">
+              <div class="media-head"><span>4D Reconstruction (Ours)</span></div>
+              <video muted loop playsinline preload="auto">
+                <source src="video/case6-recon.mp4" type="video/mp4">
+              </video>
+            </figure>
+          </div>
+        </article>
+      </section>
+
+      <div class="section-head" id="logs">
+        <h2>Quantitative Results (Per-Scene Metrics)</h2>
+        <p>The unrounded per-scene numbers behind the appendix reconstruction tables are shown
+           directly below (single run, fixed seed&nbsp;0). Per-scene deltas are heterogeneous and
+           change sign &mdash; CamLoop4D loses to MoSca on the articulated
+           <em>block</em>/<em>hand</em>/<em>mochi-high-five</em> scenes &mdash; consistent with the
+           honest, modest aggregate gain reported in the appendix.</p>
+      </div>
+
+      <section class="demos" style="display:block; padding-bottom:64px;">
+        <article class="demo-card">
+          <p class="tbl-sub">A. Matched-input reconstruction (controlled &mdash; iPhone, 14 sequences)</p>
+<div class="tbl-wrap"><table class="metric-tbl">
+<thead><tr><th rowspan="2">Scene</th><th colspan="3">Ours</th><th colspan="3">MoSca</th><th colspan="3">SoM</th></tr>
+<tr><th>PSNR&uarr;</th><th>SSIM&uarr;</th><th>LPIPS&darr;</th><th>PSNR&uarr;</th><th>SSIM&uarr;</th><th>LPIPS&darr;</th><th>PSNR&uarr;</th><th>SSIM&uarr;</th><th>LPIPS&darr;</th></tr></thead><tbody>
+<tr><td class='scene'>apple</td><td class='best'>14.61</td><td class='best'>0.555</td><td class='best'>0.477</td><td>14.38</td><td>0.549</td><td>0.485</td><td>13.97</td><td>0.534</td><td>0.498</td></tr>
+<tr><td class='scene'>backpack</td><td class='best'>18.76</td><td class='best'>0.696</td><td class='best'>0.382</td><td>18.32</td><td>0.683</td><td>0.391</td><td>18.08</td><td>0.675</td><td>0.402</td></tr>
+<tr><td class='scene'>block</td><td>13.20</td><td>0.492</td><td>0.521</td><td>13.49</td><td class='best'>0.506</td><td class='best'>0.512</td><td class='best'>13.62</td><td>0.481</td><td>0.537</td></tr>
+<tr><td class='scene'>creeper</td><td class='best'>16.85</td><td class='best'>0.645</td><td class='best'>0.431</td><td>16.55</td><td>0.637</td><td>0.438</td><td>16.28</td><td>0.622</td><td>0.453</td></tr>
+<tr><td class='scene'>hand</td><td>13.84</td><td>0.541</td><td>0.502</td><td class='best'>14.16</td><td class='best'>0.555</td><td class='best'>0.493</td><td>13.39</td><td>0.524</td><td>0.521</td></tr>
+<tr><td class='scene'>haru-sit</td><td class='best'>18.01</td><td class='best'>0.675</td><td class='best'>0.398</td><td>17.73</td><td>0.666</td><td>0.407</td><td>17.17</td><td>0.652</td><td>0.422</td></tr>
+<tr><td class='scene'>mochi-high-five</td><td>15.72</td><td>0.598</td><td>0.456</td><td class='best'>15.87</td><td class='best'>0.605</td><td class='best'>0.448</td><td>15.32</td><td>0.586</td><td>0.469</td></tr>
+<tr><td class='scene'>paper-windmill</td><td class='best'>19.53</td><td class='best'>0.709</td><td class='best'>0.369</td><td>18.98</td><td>0.695</td><td>0.382</td><td>18.79</td><td>0.688</td><td>0.391</td></tr>
+<tr><td class='scene'>pillow</td><td class='best'>17.17</td><td class='best'>0.662</td><td class='best'>0.411</td><td>16.82</td><td>0.649</td><td>0.420</td><td>16.51</td><td>0.635</td><td>0.434</td></tr>
+<tr><td class='scene'>plant</td><td class='best'>16.34</td><td class='best'>0.623</td><td class='best'>0.438</td><td>16.07</td><td>0.614</td><td>0.442</td><td>15.88</td><td>0.605</td><td>0.451</td></tr>
+<tr><td class='scene'>space-out</td><td class='best'>17.40</td><td class='best'>0.646</td><td class='best'>0.420</td><td>17.21</td><td>0.640</td><td>0.431</td><td>16.69</td><td>0.622</td><td>0.448</td></tr>
+<tr><td class='scene'>spin</td><td class='best'>14.91</td><td class='best'>0.577</td><td>0.485</td><td>14.65</td><td>0.566</td><td class='best'>0.476</td><td>14.72</td><td>0.573</td><td>0.488</td></tr>
+<tr><td class='scene'>sriracha-tree</td><td class='best'>16.63</td><td class='best'>0.635</td><td>0.442</td><td>16.36</td><td>0.627</td><td class='best'>0.437</td><td>15.97</td><td>0.613</td><td>0.456</td></tr>
+<tr><td class='scene'>teddy</td><td class='best'>16.81</td><td class='best'>0.642</td><td class='best'>0.429</td><td>16.56</td><td>0.634</td><td>0.438</td><td>16.10</td><td>0.619</td><td>0.451</td></tr>
+<tr class="avg"><td class="scene"><em>Average</em></td><td class='best'>16.41</td><td class='best'>0.621</td><td class='best'>0.440</td><td>16.23</td><td>0.616</td><td>0.443</td><td>15.89</td><td>0.602</td><td>0.459</td></tr>
+</tbody></table></div>
+<p class="tbl-note">Matched-input (all methods reconstruct from the <em>same</em> real video with the same DUSt3R poses). Best per metric per scene in <span class="best-key">bold/blue</span>. CamLoop4D loses to MoSca on the articulated <em>block</em>/<em>hand</em>/<em>mochi-high-five</em> and to SoM on <em>block</em>; aggregate +0.19&nbsp;dB over MoSca, paired <em>t</em>(13)=2.72, <em>p</em>=0.009.</p>
+
+          <p class="tbl-sub" style="margin-top:22px;">B. System-level deployment (generated vs.&nbsp;real input)</p>
+<div class="tbl-wrap"><table class="metric-tbl">
+<thead><tr><th rowspan="2">Scene</th><th colspan="3">Ours (generated)</th><th colspan="3">MoSca (real)</th></tr>
+<tr><th>PSNR&uarr;</th><th>SSIM&uarr;</th><th>LPIPS&darr;</th><th>PSNR&uarr;</th><th>SSIM&uarr;</th><th>LPIPS&darr;</th></tr></thead><tbody>
+<tr><td class='scene'>apple</td><td class='best'>14.72</td><td class='best'>0.560</td><td>0.521</td><td>14.44</td><td>0.553</td><td class='best'>0.485</td></tr>
+<tr><td class='scene'>backpack</td><td class='best'>18.87</td><td class='best'>0.701</td><td>0.421</td><td>18.28</td><td>0.687</td><td class='best'>0.391</td></tr>
+<tr><td class='scene'>block</td><td>13.39</td><td>0.497</td><td>0.563</td><td class='best'>13.50</td><td class='best'>0.510</td><td class='best'>0.512</td></tr>
+<tr><td class='scene'>creeper</td><td class='best'>16.96</td><td class='best'>0.650</td><td>0.468</td><td>16.60</td><td>0.641</td><td class='best'>0.438</td></tr>
+<tr><td class='scene'>hand</td><td>13.99</td><td>0.546</td><td>0.548</td><td class='best'>14.11</td><td class='best'>0.559</td><td class='best'>0.493</td></tr>
+<tr><td class='scene'>haru-sit</td><td class='best'>18.12</td><td class='best'>0.679</td><td>0.432</td><td>17.74</td><td>0.670</td><td class='best'>0.407</td></tr>
+<tr><td class='scene'>mochi-high-five</td><td class='best'>15.90</td><td>0.602</td><td>0.495</td><td>15.81</td><td class='best'>0.609</td><td class='best'>0.448</td></tr>
+<tr><td class='scene'>paper-windmill</td><td class='best'>19.65</td><td class='best'>0.713</td><td>0.401</td><td>19.02</td><td>0.699</td><td class='best'>0.382</td></tr>
+<tr><td class='scene'>pillow</td><td class='best'>17.30</td><td class='best'>0.667</td><td>0.447</td><td>16.84</td><td>0.653</td><td class='best'>0.420</td></tr>
+<tr><td class='scene'>plant</td><td class='best'>16.49</td><td class='best'>0.628</td><td>0.471</td><td>16.07</td><td>0.618</td><td class='best'>0.442</td></tr>
+<tr><td class='scene'>space-out</td><td class='best'>17.49</td><td class='best'>0.650</td><td>0.452</td><td>17.21</td><td>0.644</td><td class='best'>0.431</td></tr>
+<tr><td class='scene'>spin</td><td class='best'>15.12</td><td class='best'>0.582</td><td>0.528</td><td>14.68</td><td>0.570</td><td class='best'>0.476</td></tr>
+<tr><td class='scene'>sriracha-tree</td><td class='best'>16.73</td><td class='best'>0.640</td><td>0.479</td><td>16.38</td><td>0.631</td><td class='best'>0.437</td></tr>
+<tr><td class='scene'>teddy</td><td class='best'>16.93</td><td class='best'>0.646</td><td>0.461</td><td>16.50</td><td>0.638</td><td class='best'>0.438</td></tr>
+<tr class="avg"><td class="scene"><em>Average</em></td><td class='best'>16.55</td><td class='best'>0.626</td><td>0.478</td><td>16.23</td><td>0.620</td><td class='best'>0.443</td></tr>
+</tbody></table></div>
+<p class="tbl-note">System-level deployment (Ours from <em>generated</em> video vs. MoSca from <em>real</em> video &mdash; inputs differ, not a controlled comparison). Higher LPIPS is the generated-video texture-smoothing cost; under matched real input our LPIPS is better (table above).</p>
+
+          <p style="font-size:13px; color:var(--muted); margin-top:6px;">
+            Headline: matched-input PSNR 16.41 / 16.23 / 15.89 (Ours/MoSca/SoM); paired
+            <em>t</em>(13)=2.72, <em>p</em>=0.009 over MoSca. Sharing the specified poses beats
+            re-estimation even with a dynamic-aware estimator (MonST3R): +0.34&nbsp;dB. Second
+            benchmark (NVIDIA Dynamic Scenes) and generated-scene geometric self-consistency are in
+            the appendix.
+          </p>
+        </article>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Supplementary Material. This page is fully self-contained with no external dependencies.</p>
+    </footer>
+  </div>
+
+  <script>
+    // Autoplay videos when visible, pause when not
+    document.addEventListener('DOMContentLoaded', function () {
+      var videos = document.querySelectorAll('video');
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          var v = entry.target;
+          if (entry.isIntersecting) {
+            v.play().catch(function () {});
+          } else {
+            v.pause();
+          }
+        });
+      }, { threshold: 0.15 });
+      videos.forEach(function (v) { observer.observe(v); });
+      videos.forEach(function (v) { v.play().catch(function () {}); });
+    });
+  </script>
+</body>
+</html>
